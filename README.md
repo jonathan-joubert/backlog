@@ -1,20 +1,36 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Backlog
 
-# Run and deploy your AI Studio app
+A South African firearm application tracker + digital safe.
 
-This contains everything you need to run your app locally.
+## Run locally
 
-View your app in AI Studio: https://ai.studio/apps/drive/1haFM5KhAlHGpwEhzpy-ASssBYZ1EQMOd
+```bash
+npm install
+npm run dev
+```
 
-## Run Locally
+That single command starts two processes via `concurrently`:
 
-**Prerequisites:**  Node.js
+- **web** — Vite dev server on http://localhost:3000 (TanStack Start frontend)
+- **api** — Express SAPS proxy on http://localhost:3001 (`server/saps-proxy.ts`)
 
+The frontend calls `/api/*`, which Vite proxies to the Express server, so there
+are no CORS issues and no environment variables to configure.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+If you need to run them separately:
+
+```bash
+npm run dev:web   # frontend only
+npm run dev:api   # SAPS proxy only
+```
+
+## Project structure
+
+```
+src/                      TanStack Start frontend (routes, components, lib)
+server/saps-proxy.ts      Express proxy that scrapes the SAPS portal
+vite.config.ts            Dev proxy /api -> http://localhost:3001
+```
+
+Application and firearm data is stored in browser `localStorage` only —
+nothing is sent anywhere except your own SAPS status checks.
