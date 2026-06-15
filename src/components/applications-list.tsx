@@ -208,7 +208,7 @@ function ApplicationForm({
         <Label htmlFor="fsref">Reference number</Label>
         <Input
           id="fsref"
-          placeholder="e.g. 10550740"
+          placeholder="Application reference number"
           value={value.fsref}
           onChange={(e) => set("fsref", e.target.value)}
         />
@@ -217,7 +217,7 @@ function ApplicationForm({
         <Label htmlFor="fserial">Serial number</Label>
         <Input
           id="fserial"
-          placeholder="e.g. AX008490"
+          placeholder="Firearm serial number"
           value={value.fserial}
           onChange={(e) => set("fserial", e.target.value)}
         />
