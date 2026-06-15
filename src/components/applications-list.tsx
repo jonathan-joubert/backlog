@@ -51,17 +51,6 @@ import {
   getStageInfo,
 } from "@/lib/status-stages";
 import { cn } from "@/lib/utils";
-import {
-  calendarDaysSince,
-  saWorkingDaysSince,
-  formatDate,
-} from "@/lib/dates";
-import {
-  checkApplicationStatus,
-  type FirearmApplication,
-  type StatusResult,
-} from "@/lib/saps";
-import { cn } from "@/lib/utils";
 
 const SAPS_MANDATE_DAYS = 120;
 
