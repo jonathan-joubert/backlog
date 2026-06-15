@@ -199,7 +199,7 @@ function ApplicationForm({
         <Label htmlFor="alias">Alias</Label>
         <Input
           id="alias"
-          placeholder="e.g. Glock 19 Gen 5"
+          placeholder="A friendly name for this application"
           value={value.alias}
           onChange={(e) => set("alias", e.target.value)}
         />
