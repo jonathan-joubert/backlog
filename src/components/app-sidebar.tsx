@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ClipboardList, ShieldCheck, Layers } from "lucide-react";
+import { ClipboardList, ShieldCheck, Layers, Lock } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +16,8 @@ const items = [
   { title: "Track Applications", url: "/", icon: ClipboardList },
   { title: "Manage Firearms", url: "/firearms", icon: ShieldCheck },
 ];
+
+const secondaryItems = [{ title: "Privacy Policy", url: "/privacy", icon: Lock }];
 
 export function AppSidebar() {
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
