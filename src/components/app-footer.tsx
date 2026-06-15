@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { FileText, Github, ShieldCheck } from "lucide-react";
-import guidelinesAsset from "@/assets/firearm-guidelines.pdf.asset.json";
 
 const GITHUB_URL = "https://github.com/JonathanReeceJoubert/backlog";
+const GUIDELINES_PDF_URL = "/firearm-guidelines.pdf";
 
 export function AppFooter() {
   return (
@@ -39,7 +39,7 @@ export function AppFooter() {
               Free &amp; open source on GitHub
             </a>
             <a
-              href={guidelinesAsset.url}
+              href={GUIDELINES_PDF_URL}
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 font-medium text-foreground transition-colors hover:bg-accent"
