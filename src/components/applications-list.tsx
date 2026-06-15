@@ -416,3 +416,85 @@ function Row({ label, value }: { label: string; value?: string }) {
     </div>
   );
 }
+
+function StatusBadgeWithStage({
+  status,
+  applicationType,
+}: {
+  status?: string;
+  applicationType?: string;
+}) {
+  const info = getStageInfo(status, applicationType);
+  const label = status || "Unknown";
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex cursor-help items-center"
+          aria-label={`${label} stage explanation`}
+        >
+          <Badge className="bg-primary text-primary-foreground hover:bg-primary">{label}</Badge>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-xs">
+        <p className="text-xs font-semibold">
+          {info.category !== "Unknown" ? `${info.category} · ` : ""}
+          {info.stage}
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-muted">{info.description}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function StagePipeline({
+  status,
+  applicationType,
+}: {
+  status?: string;
+  applicationType?: string;
+}) {
+  const category = categorise(applicationType);
+  const pipeline = STAGE_PIPELINES[category];
+  if (pipeline.length === 0) return null;
+  const info = getStageInfo(status, applicationType);
+  const currentIdx = info.order;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1">
+        {pipeline.map((stage, i) => {
+          const reached = currentIdx >= 0 && i <= currentIdx;
+          const current = i === currentIdx;
+          return (
+            <Tooltip key={stage}>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    "h-1.5 flex-1 cursor-help rounded-full transition-colors",
+                    current
+                      ? "bg-primary"
+                      : reached
+                        ? "bg-primary/60"
+                        : "bg-border",
+                  )}
+                  aria-label={stage}
+                />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                {i + 1}. {stage}
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+        {category} workflow ·{" "}
+        {currentIdx >= 0
+          ? `Step ${currentIdx + 1} of ${pipeline.length}`
+          : "Stage not recognised"}
+      </p>
+    </div>
+  );
+}
