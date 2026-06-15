@@ -34,6 +34,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DatePicker } from "@/components/date-picker";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { useLocalStorage } from "@/lib/storage";
 import {
   calendarDaysSince,
@@ -121,7 +122,7 @@ export function ApplicationsList() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Add new application</CardTitle>
@@ -304,14 +305,14 @@ function ApplicationRow({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <CardTitle className="text-base">{app.alias}</CardTitle>
-            <CardDescription className="mt-0.5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <CardTitle className="text-base break-words">{app.alias}</CardTitle>
+            <CardDescription className="mt-0.5 break-words">
               Ref {app.fsref} · SN {app.fserial}
             </CardDescription>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 self-start">
             <Button
               variant="outline"
               size="sm"
@@ -329,14 +330,22 @@ function ApplicationRow({
             <Button variant="ghost" size="icon" onClick={onEdit} aria-label="Edit">
               <Pencil className="h-4 w-4 text-muted-foreground" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={onRemove} aria-label="Remove">
-              <Trash2 className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            <ConfirmDelete
+              trigger={
+                <Button variant="ghost" size="icon" aria-label="Remove">
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              }
+              title={`Delete "${app.alias}"?`}
+              description="This permanently removes the saved application and its fetched status history from this device. This cannot be undone."
+              confirmLabel="Delete application"
+              onConfirm={onRemove}
+            />
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-3 text-sm">
+        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
           <Metric label="Submitted">
             <span className="inline-flex items-center gap-1.5 text-foreground">
               <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
