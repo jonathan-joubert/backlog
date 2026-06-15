@@ -132,25 +132,28 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeInit />
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
-          <AppSidebar />
-          <div className="flex flex-1 flex-col">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur">
-              <SidebarTrigger />
-              <div className="ml-auto flex items-center gap-2">
-                <SapsStatusBadge />
-                <LicensingGuide />
-                <ThemeToggle />
-              </div>
-            </header>
-            <main className="flex-1 px-4 py-6 md:px-8">
-              <Outlet />
-            </main>
+      <TooltipProvider delayDuration={150}>
+        <SidebarProvider>
+          <div className="flex min-h-screen w-full bg-background">
+            <AppSidebar />
+            <div className="flex flex-1 flex-col">
+              <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur">
+                <SidebarTrigger />
+                <div className="ml-auto flex items-center gap-2">
+                  <SapsStatusBadge />
+                  <LicensingGuide />
+                  <ThemeToggle />
+                </div>
+              </header>
+              <main className="flex-1 px-4 py-6 md:px-8">
+                <Outlet />
+              </main>
+              <AppFooter />
+            </div>
           </div>
-        </div>
-        <Toaster richColors closeButton position="top-right" />
-      </SidebarProvider>
+          <Toaster richColors closeButton position="top-right" />
+        </SidebarProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
