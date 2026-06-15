@@ -28,8 +28,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DatePicker } from "@/components/date-picker";
 import { useLocalStorage } from "@/lib/storage";
+import {
+  calendarDaysSince,
+  saWorkingDaysSince,
+  formatDate,
+} from "@/lib/dates";
+import {
+  checkApplicationStatus,
+  type FirearmApplication,
+  type StatusResult,
+} from "@/lib/saps";
+import {
+  STAGE_PIPELINES,
+  categorise,
+  getStageInfo,
+} from "@/lib/status-stages";
+import { cn } from "@/lib/utils";
 import {
   calendarDaysSince,
   saWorkingDaysSince,
