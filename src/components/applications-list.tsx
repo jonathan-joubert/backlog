@@ -356,16 +356,22 @@ function ApplicationRow({
         {app.lastResult ? (
           <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <Badge className="bg-primary text-primary-foreground hover:bg-primary">
-                {app.lastResult.status || "Unknown"}
-              </Badge>
+              <StatusBadgeWithStage
+                status={app.lastResult.status}
+                applicationType={app.lastResult.applicationType}
+              />
               {app.lastCheckedAt && (
                 <span className="text-xs text-muted-foreground">
                   Checked {formatDate(app.lastCheckedAt)}
                 </span>
               )}
             </div>
-            <div className="grid gap-1 text-sm">
+            <StagePipeline
+              status={app.lastResult.status}
+              applicationType={app.lastResult.applicationType}
+            />
+            <div className="mt-3 grid gap-1 text-sm">
+              <Row label="Type" value={app.lastResult.applicationType} />
               <Row label="Status date" value={app.lastResult.statusDate} />
               <Row label="Description" value={app.lastResult.statusDescription} />
               <Row label="Next step" value={app.lastResult.nextStep} />
