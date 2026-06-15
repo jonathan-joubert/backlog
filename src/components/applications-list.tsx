@@ -442,7 +442,7 @@ function StatusBadgeWithStage({
           {info.category !== "Unknown" ? `${info.category} · ` : ""}
           {info.stage}
         </p>
-        <p className="mt-1 text-xs leading-relaxed text-muted">{info.description}</p>
+        <p className="mt-1 text-xs leading-relaxed text-primary-foreground/80">{info.description}</p>
       </TooltipContent>
     </Tooltip>
   );
