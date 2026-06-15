@@ -10,9 +10,20 @@ interface Props {
   onChange: (iso: string) => void;
   placeholder?: string;
   disabled?: (date: Date) => boolean;
+  /** Earliest selectable year. Defaults to 1980. */
+  fromYear?: number;
+  /** Latest selectable year. Defaults to current year + 10. */
+  toYear?: number;
 }
 
-export function DatePicker({ value, onChange, placeholder = "Pick a date", disabled }: Props) {
+export function DatePicker({
+  value,
+  onChange,
+  placeholder = "Pick a date",
+  disabled,
+  fromYear = 1980,
+  toYear = new Date().getFullYear() + 10,
+}: Props) {
   const date = value ? new Date(value) : undefined;
   return (
     <Popover>
@@ -33,6 +44,10 @@ export function DatePicker({ value, onChange, placeholder = "Pick a date", disab
         <Calendar
           mode="single"
           selected={date}
+          defaultMonth={date ?? new Date()}
+          captionLayout="dropdown"
+          startMonth={new Date(fromYear, 0)}
+          endMonth={new Date(toYear, 11)}
           onSelect={(d) => {
             if (!d) return;
             const y = d.getFullYear();
