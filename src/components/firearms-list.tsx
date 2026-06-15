@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/date-picker";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { useLocalStorage } from "@/lib/storage";
 import { FCA_SECTIONS, getFcaSection } from "@/lib/fca";
 import { addYears, countdownTo, formatDate } from "@/lib/dates";
@@ -143,9 +144,17 @@ function FirearmCard({
             <Button variant="ghost" size="icon" onClick={onEdit} aria-label="Edit">
               <Pencil className="h-4 w-4 text-muted-foreground" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={onRemove} aria-label="Remove">
-              <Trash2 className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            <ConfirmDelete
+              trigger={
+                <Button variant="ghost" size="icon" aria-label="Remove">
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              }
+              title={`Delete "${firearm.alias}"?`}
+              description="This permanently removes the firearm from your digital safe on this device. This cannot be undone."
+              confirmLabel="Delete firearm"
+              onConfirm={onRemove}
+            />
           </div>
         </div>
       </CardHeader>

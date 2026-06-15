@@ -55,7 +55,7 @@ function TrackApplicationsPage() {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Track applications</h1>
         <p className="text-sm text-muted-foreground">
-          Monitor each SAPS firearm licence application — its aging, status, and next steps.
+          Monitor each SAPS firearm licence application.
         </p>
       </header>
 
