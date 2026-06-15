@@ -16,7 +16,9 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeInit, ThemeToggle } from "@/components/theme-toggle";
 import { LicensingGuide } from "@/components/licensing-guide";
 import { SapsStatusBadge } from "@/components/saps-status-badge";
+import { AppFooter } from "@/components/app-footer";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function NotFoundComponent() {
   return (
