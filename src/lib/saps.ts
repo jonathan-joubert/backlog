@@ -29,9 +29,9 @@ export interface Firearm {
   createdAt: string;
 }
 
-const API_BASE =
-  (typeof window !== "undefined" && (window as any).__SAPS_API__) ||
-  "http://localhost:3001/api";
+// Calls go to /api/* and are proxied to the local SAPS Express server
+// (server/saps-proxy.ts on port 3001) by Vite's dev proxy.
+const API_BASE = "/api";
 
 export async function checkSapsHealth(): Promise<boolean> {
   try {

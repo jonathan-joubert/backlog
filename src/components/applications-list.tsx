@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Loader2, Plus, RefreshCw, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +19,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { DatePicker } from "@/components/date-picker";
 import { useLocalStorage } from "@/lib/storage";
 import {
@@ -28,40 +44,51 @@ import { cn } from "@/lib/utils";
 
 const SAPS_MANDATE_DAYS = 120;
 
+interface AppDraft {
+  alias: string;
+  fsref: string;
+  fserial: string;
+  submittedAt: string;
+}
+
+const emptyDraft: AppDraft = { alias: "", fsref: "", fserial: "", submittedAt: "" };
+
 export function ApplicationsList() {
   const [apps, setApps] = useLocalStorage<FirearmApplication[]>("backlog_apps", []);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<FirearmApplication | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
-  // form state
-  const [alias, setAlias] = useState("");
-  const [fsref, setFsref] = useState("");
-  const [fserial, setFserial] = useState("");
-  const [submittedAt, setSubmittedAt] = useState<string>("");
+  // inline add form state
+  const [draft, setDraft] = useState<AppDraft>(emptyDraft);
 
   const addApp = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!alias || !fsref || !fserial || !submittedAt) {
+    if (!draft.alias || !draft.fsref || !draft.fserial || !draft.submittedAt) {
       toast.error("Please complete all fields.");
       return;
     }
-    const next: FirearmApplication = {
-      id: crypto.randomUUID(),
-      alias,
-      fsref,
-      fserial,
-      submittedAt,
-    };
+    const next: FirearmApplication = { id: crypto.randomUUID(), ...draft };
     setApps([next, ...apps]);
-    setAlias("");
-    setFsref("");
-    setFserial("");
-    setSubmittedAt("");
+    setDraft(emptyDraft);
     toast.success("Application saved.");
   };
 
   const removeApp = (id: string) => {
     setApps(apps.filter((a) => a.id !== id));
     toast.success("Application removed.");
+  };
+
+  const saveEdit = (updated: AppDraft) => {
+    if (!editing) return;
+    if (!updated.alias || !updated.fsref || !updated.fserial || !updated.submittedAt) {
+      toast.error("Please complete all fields.");
+      return;
+    }
+    setApps(apps.map((a) => (a.id === editing.id ? { ...a, ...updated } : a)));
+    setEditOpen(false);
+    setEditing(null);
+    toast.success("Application updated.");
   };
 
   const checkStatus = async (app: FirearmApplication) => {
@@ -93,48 +120,17 @@ export function ApplicationsList() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={addApp} className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="alias">Alias</Label>
-              <Input
-                id="alias"
-                placeholder="e.g. Glock 19 Gen 5"
-                value={alias}
-                onChange={(e) => setAlias(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="fsref">Reference number</Label>
-              <Input
-                id="fsref"
-                placeholder="e.g. 10550740"
-                value={fsref}
-                onChange={(e) => setFsref(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="fserial">Serial number</Label>
-              <Input
-                id="fserial"
-                placeholder="e.g. AX008490"
-                value={fserial}
-                onChange={(e) => setFserial(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Date submitted</Label>
-              <DatePicker
-                value={submittedAt}
-                onChange={setSubmittedAt}
-                disabled={(d) => d > new Date()}
-                placeholder="Pick submission date"
-              />
-            </div>
-            <Button type="submit" className="w-full gap-2">
-              <Plus className="h-4 w-4" />
-              Save application
-            </Button>
-          </form>
+          <ApplicationForm
+            value={draft}
+            onChange={setDraft}
+            onSubmit={addApp}
+            submitLabel={
+              <>
+                <Plus className="h-4 w-4" />
+                Save application
+              </>
+            }
+          />
         </CardContent>
       </Card>
 
@@ -153,10 +149,128 @@ export function ApplicationsList() {
             loading={loadingId === app.id}
             onCheck={() => checkStatus(app)}
             onRemove={() => removeApp(app.id)}
+            onEdit={() => {
+              setEditing(app);
+              setEditOpen(true);
+            }}
           />
         ))}
       </div>
+
+      <Dialog
+        open={editOpen}
+        onOpenChange={(o) => {
+          setEditOpen(o);
+          if (!o) setEditing(null);
+        }}
+      >
+        {editing && (
+          <EditApplicationDialog
+            initial={{
+              alias: editing.alias,
+              fsref: editing.fsref,
+              fserial: editing.fserial,
+              submittedAt: editing.submittedAt,
+            }}
+            onSave={saveEdit}
+          />
+        )}
+      </Dialog>
     </div>
+  );
+}
+
+function ApplicationForm({
+  value,
+  onChange,
+  onSubmit,
+  submitLabel,
+}: {
+  value: AppDraft;
+  onChange: (v: AppDraft) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  submitLabel: React.ReactNode;
+}) {
+  const set = <K extends keyof AppDraft>(k: K, v: AppDraft[K]) =>
+    onChange({ ...value, [k]: v });
+  return (
+    <form onSubmit={onSubmit} className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="alias">Alias</Label>
+        <Input
+          id="alias"
+          placeholder="e.g. Glock 19 Gen 5"
+          value={value.alias}
+          onChange={(e) => set("alias", e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="fsref">Reference number</Label>
+        <Input
+          id="fsref"
+          placeholder="e.g. 10550740"
+          value={value.fsref}
+          onChange={(e) => set("fsref", e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="fserial">Serial number</Label>
+        <Input
+          id="fserial"
+          placeholder="e.g. AX008490"
+          value={value.fserial}
+          onChange={(e) => set("fserial", e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Date submitted</Label>
+        <DatePicker
+          value={value.submittedAt}
+          onChange={(iso) => set("submittedAt", iso)}
+          disabled={(d) => d > new Date()}
+          placeholder="Pick submission date"
+        />
+      </div>
+      <Button type="submit" className="w-full gap-2">
+        {submitLabel}
+      </Button>
+    </form>
+  );
+}
+
+function EditApplicationDialog({
+  initial,
+  onSave,
+}: {
+  initial: AppDraft;
+  onSave: (v: AppDraft) => void;
+}) {
+  const [draft, setDraft] = useState<AppDraft>(initial);
+  return (
+    <DialogContent className="max-w-md">
+      <DialogHeader>
+        <DialogTitle>Edit application</DialogTitle>
+        <DialogDescription>
+          Update saved details. Status history is preserved.
+        </DialogDescription>
+      </DialogHeader>
+      <ApplicationForm
+        value={draft}
+        onChange={setDraft}
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave(draft);
+        }}
+        submitLabel={<>Save changes</>}
+      />
+      <DialogFooter className="pt-1">
+        <DialogClose asChild>
+          <Button variant="outline" type="button">
+            Cancel
+          </Button>
+        </DialogClose>
+      </DialogFooter>
+    </DialogContent>
   );
 }
 
@@ -165,11 +279,13 @@ function ApplicationRow({
   loading,
   onCheck,
   onRemove,
+  onEdit,
 }: {
   app: FirearmApplication;
   loading: boolean;
   onCheck: () => void;
   onRemove: () => void;
+  onEdit: () => void;
 }) {
   const calDays = calendarDaysSince(app.submittedAt);
   const workDays = saWorkingDaysSince(app.submittedAt);
@@ -199,6 +315,9 @@ function ApplicationRow({
                 <RefreshCw className="h-3.5 w-3.5" />
               )}
               Check
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onEdit} aria-label="Edit">
+              <Pencil className="h-4 w-4 text-muted-foreground" />
             </Button>
             <Button variant="ghost" size="icon" onClick={onRemove} aria-label="Remove">
               <Trash2 className="h-4 w-4 text-muted-foreground" />

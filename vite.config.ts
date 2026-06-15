@@ -12,4 +12,16 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      proxy: {
+        // Forward /api/* to the local SAPS proxy started by `npm run dev:api`.
+        "/api": {
+          target: "http://localhost:3001",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
+  },
 });
