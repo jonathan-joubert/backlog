@@ -1,21 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { FirearmsList } from "@/components/firearms-list";
 
-export const Route = createFileRoute("/firearms")({
-  head: () => ({
-    meta: [
-      { title: "Manage Firearms · Backlog" },
-      {
-        name: "description",
-        content:
-          "Digital safe for approved firearms with FCA section expiry countdowns.",
-      },
-    ],
-  }),
-  component: FirearmsPage,
-});
-
-function FirearmsPage() {
+export default function FirearmsPage() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <header className="space-y-1">

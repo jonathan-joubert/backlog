@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { ClipboardList, ShieldCheck, Layers, Lock, Settings } from "lucide-react";
 import {
   Sidebar,
@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const items = [
@@ -23,8 +24,12 @@ const secondaryItems = [
 ];
 
 export function AppSidebar() {
-  const currentPath = useRouterState({ select: (s) => s.location.pathname });
-  const isActive = (path: string) => currentPath === path;
+  const { pathname } = useLocation();
+  const isActive = (path: string) => pathname === path;
+  const { setOpenMobile, isMobile } = useSidebar();
+  const closeIfMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -47,7 +52,7 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <Link to={item.url} className="flex items-center gap-2">
+                    <Link to={item.url} onClick={closeIfMobile} className="flex items-center gap-2">
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>
@@ -64,7 +69,7 @@ export function AppSidebar() {
               {secondaryItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <Link to={item.url} className="flex items-center gap-2">
+                    <Link to={item.url} onClick={closeIfMobile} className="flex items-center gap-2">
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>

@@ -1,27 +1,33 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - tanstackStart, viteReact, tailwindcss, tsConfigPaths, nitro (build-only using cloudflare as a default target),
-//     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
-//     error logger plugins, and sandbox detection (port/host/strictPort).
-// You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import path from "node:path";
 
+// Plain Vite SPA build. `npm run build` outputs static assets to `dist/`
+// that can be dropped into any static / PHP host (e.g. cPanel).
 export default defineConfig({
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
+  plugins: [react(), tailwindcss(), tsconfigPaths()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
-  vite: {
-    server: {
-      proxy: {
-        // Forward /api/* to the local SAPS proxy started by `npm run dev:api`.
-        "/api": {
-          target: "http://localhost:3001",
-          changeOrigin: true,
-          secure: false,
-        },
+  server: {
+    host: "::",
+    port: 8080,
+    proxy: {
+      // Dev only: forward /api/* to the local Node SAPS proxy (npm run dev:api)
+      // so the same fetch URLs work in dev and against PHP in production.
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        secure: false,
       },
     },
+  },
+  build: {
+    outDir: "dist",
+    sourcemap: false,
   },
 });

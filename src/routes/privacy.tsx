@@ -1,25 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/privacy")({
-  head: () => ({
-    meta: [
-      { title: "Privacy Policy · Backlog" },
-      {
-        name: "description",
-        content:
-          "Backlog privacy policy — all firearm and application data is stored locally on your device. No personal data is collected.",
-      },
-    ],
-  }),
-  component: PrivacyPage,
-});
-
-function PrivacyPage() {
+export default function PrivacyPage() {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="ghost" size="sm" asChild className="gap-2">
           <Link to="/">
             <ArrowLeft className="h-4 w-4" /> Back
