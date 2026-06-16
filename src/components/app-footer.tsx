@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { FileText, Github, ShieldCheck } from "lucide-react";
 
 const GITHUB_URL = "https://github.com/JonathanReeceJoubert/backlog";

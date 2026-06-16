@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ClipboardList, Clock, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,21 +5,7 @@ import { ApplicationsList } from "@/components/applications-list";
 import type { FirearmApplication } from "@/lib/saps";
 import { calendarDaysSince } from "@/lib/dates";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Track Applications · Backlog" },
-      {
-        name: "description",
-        content:
-          "Track SAPS firearm licence applications with calendar and working-day aging.",
-      },
-    ],
-  }),
-  component: TrackApplicationsPage,
-});
-
-function TrackApplicationsPage() {
+export default function TrackApplicationsPage() {
   const [apps, setApps] = useState<FirearmApplication[]>([]);
 
   useEffect(() => {
@@ -59,7 +44,7 @@ function TrackApplicationsPage() {
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
         <MetricCard
           icon={<ClipboardList className="h-4 w-4" />}
           label="Saved applications"
@@ -98,14 +83,14 @@ function MetricCard({
 }) {
   return (
     <Card>
-      <CardContent className="flex items-center justify-between py-5">
-        <div>
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+      <CardContent className="flex items-center justify-between py-4 sm:py-5">
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground sm:text-xs">
             {label}
           </div>
           <div
             className={
-              "mt-1 text-3xl font-semibold tabular-nums " +
+              "mt-1 text-2xl font-semibold tabular-nums sm:text-3xl " +
               (tone === "danger"
                 ? "text-destructive"
                 : tone === "muted"
@@ -118,7 +103,7 @@ function MetricCard({
         </div>
         <div
           className={
-            "flex h-10 w-10 items-center justify-center rounded-lg " +
+            "flex h-9 w-9 items-center justify-center rounded-lg sm:h-10 sm:w-10 " +
             (tone === "danger"
               ? "bg-destructive/10 text-destructive"
               : "bg-primary/10 text-primary")

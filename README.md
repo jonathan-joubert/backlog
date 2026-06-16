@@ -1,36 +1,62 @@
 # Backlog
 
-A South African firearm application tracker + digital safe.
+A personal SAPS firearm-licence application & digital safe tracker.
+**Static React SPA + PHP backend.** Built to drop into any cPanel /
+shared-hosting account — no Node.js required on the server.
 
-## Run locally
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-That single command starts two processes via `concurrently`:
+- `npm run dev` runs Vite on http://localhost:8080 **and** a tiny Node
+  Express SAPS proxy on http://localhost:3001 (same endpoints as the
+  PHP files, so the frontend code is identical in dev and prod).
+- Vite proxies `/api/*` to the local Node proxy in dev.
 
-- **web** — Vite dev server on http://localhost:3000 (TanStack Start frontend)
-- **api** — Express SAPS proxy on http://localhost:3001 (`server/saps-proxy.ts`)
-
-The frontend calls `/api/*`, which Vite proxies to the Express server, so there
-are no CORS issues and no environment variables to configure.
-
-If you need to run them separately:
+If you only want the frontend:
 
 ```bash
-npm run dev:web   # frontend only
-npm run dev:api   # SAPS proxy only
+npm run dev:web
 ```
 
-## Project structure
+## Production build (drop into cPanel)
 
-```
-src/                      TanStack Start frontend (routes, components, lib)
-server/saps-proxy.ts      Express proxy that scrapes the SAPS portal
-vite.config.ts            Dev proxy /api -> http://localhost:3001
+```bash
+npm run build
 ```
 
-Application and firearm data is stored in browser `localStorage` only —
-nothing is sent anywhere except your own SAPS status checks.
+Then upload the **entire contents of `dist/`** into your cPanel folder
+(typically `public_html`). The build already includes:
+
+- `index.html` and hashed JS/CSS bundles
+- `api/check-status.php` and `api/healthcheck.php`
+- `.htaccess` with SPA fallback + pretty `/api/...` URLs
+
+Requirements on the server:
+- PHP 7.4+ with the `curl` and `dom` extensions enabled (standard on cPanel).
+- Apache with `mod_rewrite` enabled (also standard on cPanel).
+
+After upload, visit your domain — the frontend renders from `/` and the
+"Check" buttons call the PHP endpoints automatically.
+
+## Project layout
+
+```
+public/             static assets copied verbatim to dist/
+  api/              PHP backend (deployed alongside the SPA)
+  .htaccess         SPA fallback + URL rewrites
+src/
+  App.tsx           routes (react-router-dom)
+  routes/           page components
+  components/       UI
+  lib/              storage, dates, SAPS client, etc.
+server/
+  saps-proxy.ts     local-dev-only Express mirror of the PHP backend
+```
+
+## License
+
+Free & open source.

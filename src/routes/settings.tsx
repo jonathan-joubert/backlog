@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -24,17 +23,7 @@ import {
 
 const LOCAL_KEYS = ["backlog_apps", "backlog_firearms", "backlog_theme"];
 
-export const Route = createFileRoute("/settings")({
-  head: () => ({
-    meta: [
-      { title: "Settings · Backlog" },
-      { name: "description", content: "Manage local data and install Backlog as an app." },
-    ],
-  }),
-  component: SettingsPage,
-});
-
-function SettingsPage() {
+export default function SettingsPage() {
   const [installEvent, setInstallEvent] = useState<any>(null);
   const [installed, setInstalled] = useState(false);
 
@@ -90,12 +79,11 @@ function SettingsPage() {
         <CardHeader>
           <CardTitle className="text-base">Install as an app</CardTitle>
           <CardDescription>
-            Add Backlog to your home screen for an app-like, full-screen experience. Works offline-free —
-            all data still lives on your device only.
+            Add Backlog to your home screen for an app-like, full-screen experience.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onClick={install} disabled={installed} className="gap-2">
+          <Button onClick={install} disabled={installed} className="gap-2 w-full sm:w-auto">
             <Download className="h-4 w-4" />
             {installed ? "Installed" : installEvent ? "Install Backlog" : "Install (use browser menu)"}
           </Button>
@@ -110,14 +98,14 @@ function SettingsPage() {
         <CardHeader>
           <CardTitle className="text-base">Clear all local data</CardTitle>
           <CardDescription>
-            Permanently deletes every saved application, firearm, and preference from this browser. This
-            action cannot be undone.
+            Permanently deletes every saved application, firearm, and preference from this browser.
+            This action cannot be undone.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="gap-2">
+              <Button variant="destructive" className="gap-2 w-full sm:w-auto">
                 <Trash2 className="h-4 w-4" />
                 Clear all local data
               </Button>
@@ -126,8 +114,8 @@ function SettingsPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Erase everything stored locally?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  All saved applications, firearms, and preferences will be permanently removed from this
-                  device. This cannot be undone.
+                  All saved applications, firearms, and preferences will be permanently removed from
+                  this device. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
