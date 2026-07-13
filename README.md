@@ -1,9 +1,13 @@
 # Backlog
 
-A personal SAPS firearm-licence application & digital safe tracker.
-**Pure static SPA (React + Vite) + PHP API files.** No Node.js required
-on the server — drop the built `dist/` folder into any cPanel /
-shared-hosting account and you're done.
+Local-first SAPS firearm licence application tracker. Pure JavaScript stack
+(React + Vite frontend, tiny Node server for the SAPS scrape proxy). All user
+data lives in the browser's `localStorage` — nothing is sent anywhere except
+the SAPS status enquiry itself.
+
+## Requirements
+
+- Node.js 18+ (uses the built-in `fetch` and `undici`).
 
 ## Local development
 
@@ -12,43 +16,26 @@ npm install
 npm run dev
 ```
 
-Vite serves the frontend on http://localhost:8080 and a built-in dev
-middleware mirrors the production PHP endpoints (`/api/check-status`,
-`/api/healthcheck`) so no extra processes are needed. The frontend
-code is identical in dev and production.
+Vite serves the SPA on <http://localhost:8080> and handles `/api/healthcheck`
+and `/api/check-status` in-process via a dev middleware — no separate server
+needed.
 
-## Production build (drop into cPanel)
+## Production build & deploy (Node hosting, e.g. cPanel Node.js app)
 
 ```bash
-npm run build
+npm install
+npm run build   # outputs dist/
+npm start       # runs server/index.mjs on PORT (default 3000)
 ```
 
-Then upload the **entire contents of `dist/`** into your cPanel folder
-(typically `public_html`). The build already includes:
+Upload the project (or at minimum `dist/`, `server/`, `package.json`) to the
+host, run `npm install --omit=dev`, then start `node server/index.mjs`.
+The server serves the built SPA and the `/api/*` endpoints on the same port.
 
-- `index.html` and hashed JS/CSS bundles
-- `api/check-status.php` and `api/healthcheck.php`
-- `.htaccess` with SPA fallback + pretty `/api/...` URLs
-- PWA manifest and icons
+## Why a Node proxy?
 
-Requirements on the server:
-
-- PHP 7.4+ with the `curl` and `dom` extensions (standard on cPanel).
-- Apache with `mod_rewrite` (standard on cPanel).
-
-## Project layout
-
-```
-public/       static assets copied verbatim to dist/
-  api/        PHP backend (deployed alongside the SPA)
-  .htaccess   SPA fallback + URL rewrites
-src/
-  App.tsx     routes (react-router-dom)
-  routes/     page components
-  components/ UI
-  lib/        storage, dates, SAPS client, etc.
-```
-
-## License
-
-Free & open source.
+The SAPS status portal presents an incomplete TLS certificate chain, so
+Node's fetch rejects it with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`. The proxy in
+`server/saps.mjs` uses an undici dispatcher with `rejectUnauthorized: false`
+for outbound scraping only (mirroring what `curl -k` / PHP's
+`CURLOPT_SSL_VERIFYPEER=false` did).
