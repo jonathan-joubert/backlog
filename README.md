@@ -1,41 +1,20 @@
-# Backlog
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-Local-first SAPS firearm licence application tracker. Pure JavaScript stack
-(React + Vite frontend, tiny Node server for the SAPS scrape proxy). All user
-data lives in the browser's `localStorage` — nothing is sent anywhere except
-the SAPS status enquiry itself.
+# Run and deploy your AI Studio app
 
-## Requirements
+This contains everything you need to run your app locally.
 
-- Node.js 18+ (uses the built-in `fetch` and `undici`).
+View your app in AI Studio: https://ai.studio/apps/drive/1haFM5KhAlHGpwEhzpy-ASssBYZ1EQMOd
 
-## Local development
+## Run Locally
 
-```bash
-npm install
-npm run dev
-```
+**Prerequisites:**  Node.js
 
-Vite serves the SPA on <http://localhost:8080> and handles `/api/healthcheck`
-and `/api/check-status` in-process via a dev middleware — no separate server
-needed.
 
-## Production build & deploy (Node hosting, e.g. cPanel Node.js app)
-
-```bash
-npm install
-npm run build   # outputs dist/
-npm start       # runs server/index.mjs on PORT (default 3000)
-```
-
-Upload the project (or at minimum `dist/`, `server/`, `package.json`) to the
-host, run `npm install --omit=dev`, then start `node server/index.mjs`.
-The server serves the built SPA and the `/api/*` endpoints on the same port.
-
-## Why a Node proxy?
-
-The SAPS status portal presents an incomplete TLS certificate chain, so
-Node's fetch rejects it with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`. The proxy in
-`server/saps.mjs` uses an undici dispatcher with `rejectUnauthorized: false`
-for outbound scraping only (mirroring what `curl -k` / PHP's
-`CURLOPT_SSL_VERIFYPEER=false` did).
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
