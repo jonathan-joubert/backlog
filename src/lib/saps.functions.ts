@@ -71,6 +71,7 @@ export const checkFirearmStatus = createServerFn({ method: "POST" })
     z.object({ fsref: z.string().min(1), fserial: z.string().min(1) }).parse(data),
   )
   .handler(async ({ data }): Promise<StatusResult> => {
+    relaxTls();
     const getRes = await fetch(SAPS_URL, { headers: BROWSER_HEADERS });
     const getHtml = await getRes.text();
 
