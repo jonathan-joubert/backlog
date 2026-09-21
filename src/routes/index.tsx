@@ -187,7 +187,7 @@ function Index() {
                 <p className="text-sm text-muted-foreground">Nothing saved yet.</p>
               )}
               {savedApps.map((app) => (
-                <Card key={app.id}>
+                <Card key={app.id} className="transition-shadow hover:shadow-md">
                   <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
                     <div>
                       <p className="font-medium">{app.alias}</p>
@@ -197,14 +197,16 @@ function Index() {
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" disabled={loading} onClick={() => checkStatus(app)}>
+                        <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                         Check status
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
+                        aria-label={`Remove ${app.alias}`}
                         onClick={() => removeApplication(app.id)}
                       >
-                        Remove
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
