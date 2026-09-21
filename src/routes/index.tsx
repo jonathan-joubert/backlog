@@ -49,6 +49,7 @@ function Index() {
   const [fsref, setFsref] = useState("");
   const [fserial, setFserial] = useState("");
 
+  const { theme, toggle } = useTheme();
   const fetchStatus = useServerFn(checkFirearmStatus);
   const health = useQuery({
     queryKey: ["saps-health"],
