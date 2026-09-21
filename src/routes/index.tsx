@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { Moon, Sun, Shield, Trash2, RefreshCw } from "lucide-react";
 
 import { checkFirearmStatus, checkSapsHealth, type StatusResult } from "@/lib/saps.functions";
+import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
