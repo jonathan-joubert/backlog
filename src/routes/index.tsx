@@ -100,22 +100,51 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-5xl px-6 py-10">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 opacity-60"
+        style={{
+          background:
+            "radial-gradient(60% 100% at 50% 0%, var(--color-primary) 0%, transparent 70%)",
+          maskImage: "linear-gradient(to bottom, black, transparent)",
+          opacity: 0.12,
+        }}
+      />
+      <div className="relative mx-auto max-w-5xl px-6 py-10">
         <header className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Firearm Status Tracker</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Track your SAPS firearm licence applications in one place.
-            </p>
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+              <Shield className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Firearm Status Tracker</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Track your SAPS firearm licence applications in one place.
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm">
-            <span
-              className={`h-2 w-2 rounded-full ${
-                health.data?.isUp ? "bg-emerald-500" : health.isLoading ? "bg-amber-500" : "bg-destructive"
-              }`}
-            />
-            SAPS portal:{" "}
-            {health.isLoading ? "checking…" : health.data?.isUp ? "online" : "offline"}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm shadow-sm">
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  health.isLoading
+                    ? "bg-accent"
+                    : health.data?.isUp
+                      ? "bg-primary animate-pulse"
+                      : "bg-destructive"
+                }`}
+              />
+              SAPS portal:{" "}
+              {health.isLoading ? "checking…" : health.data?.isUp ? "online" : "offline"}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              aria-label="Toggle dark mode"
+              onClick={toggle}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
           </div>
         </header>
 
