@@ -43,8 +43,22 @@ function parseResultRow(html: string): string[] | null {
   return cells.length ? cells : null;
 }
 
+// The SAPS server does not send its intermediate certificate, so strict TLS
+// verification fails. On Node (dev/self-hosted) we relax it for this process;
+// on edge runtimes this is a harmless no-op.
+function relaxTls() {
+  try {
+    if (typeof process !== "undefined" && process.env) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    }
+  } catch {
+    /* not available on edge runtimes */
+  }
+}
+
 export const checkSapsHealth = createServerFn({ method: "GET" }).handler(async () => {
   try {
+    relaxTls();
     const res = await fetch(SAPS_URL, { headers: BROWSER_HEADERS });
     return { isUp: res.ok };
   } catch {
