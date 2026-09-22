@@ -1,20 +1,39 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Firearm Status Tracker
 
-# Run and deploy your AI Studio app
+A single-page app to save SAPS firearm licence applications and check their
+status. Pure client-side static build — no Node.js server needed in production.
 
-This contains everything you need to run your app locally.
+## Local development
 
-View your app in AI Studio: https://ai.studio/apps/drive/1haFM5KhAlHGpwEhzpy-ASssBYZ1EQMOd
+```bash
+npm install
+npm run dev      # dev server
+npm run build    # outputs dist/
+npm run preview  # serve the production build locally
+```
 
-## Run Locally
+## Deploying to cPanel / Apache
 
-**Prerequisites:**  Node.js
+1. `npm install && npm run build`
+2. Upload **everything inside `dist/`** (including the hidden `.htaccess`
+   file) into `public_html/backlog.fibco.co.za/`
+3. Open https://backlog.fibco.co.za — done.
 
+The `.htaccess` makes Apache serve `index.html` for client-side routes, so
+deep links don't 404.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## SAPS status checks (proxy.php)
+
+Browsers cannot call the SAPS portal directly (it blocks cross-origin
+requests), and this app has no server. To make "Check status" work:
+
+1. Upload `cpanel-extras/proxy.php` into `public_html/backlog.fibco.co.za/`
+   (it's a tiny PHP forwarder to `www.saps.gov.za` — cPanel runs PHP natively).
+2. Create a `.env` file in the project root before building:
+   ```
+   VITE_SAPS_PROXY_URL=https://backlog.fibco.co.za/proxy.php
+   ```
+3. `npm run build` and re-upload `dist/`.
+
+Without the proxy the app still works for saving and organising applications;
+status checks will show a message explaining the proxy is not configured.

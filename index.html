@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Firearm Status Tracker | SAPS Application Checker</title>
+    <meta
+      name="description"
+      content="Save your SAPS firearm licence applications and check their status in seconds."
+    />
+    <meta property="og:title" content="Firearm Status Tracker" />
+    <meta
+      property="og:description"
+      content="Save your SAPS firearm licence applications and check their status in seconds."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <script>
+      // Apply the saved theme before first paint to avoid a flash.
+      (function () {
+        var t = localStorage.getItem("theme");
+        if (t === "dark" || (!t && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
