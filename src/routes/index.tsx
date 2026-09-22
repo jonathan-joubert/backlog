@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Moon, Sun, Shield, Trash2, RefreshCw } from "lucide-react";
 
-import { checkFirearmStatus, checkSapsHealth, type StatusResult } from "@/lib/saps.functions";
+import { checkFirearmStatus, checkSapsHealth, type StatusResult } from "@/lib/saps";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +49,6 @@ function Index() {
   const [fserial, setFserial] = useState("");
 
   const { theme, toggle } = useTheme();
-  const fetchStatus = useServerFn(checkFirearmStatus);
   const health = useQuery({
     queryKey: ["saps-health"],
     queryFn: () => checkSapsHealth(),
@@ -89,7 +87,7 @@ function Index() {
     setError("");
     setActiveResult(null);
     try {
-      const result = await fetchStatus({ data: { fsref: app.fsref, fserial: app.fserial } });
+      const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
       setActiveResult(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch status.");
