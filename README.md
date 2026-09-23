@@ -1,7 +1,8 @@
-# Firearm Status Tracker
+# Backlog
 
-A single-page app to save SAPS firearm licence applications and check their
-status. Pure client-side static build — no Node.js server needed in production.
+A private, open-source single-page app for saving SAPS firearm licence applications
+on one device and checking their status. No analytics, tracking cookies, user
+accounts, or production Node.js server are used.
 
 ## Local development
 
