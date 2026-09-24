@@ -194,7 +194,7 @@ function Index() {
                   <label className="grid gap-1.5 text-sm font-medium">
                     Application name
                   <Input
-                    placeholder="e.g. Glock 19"
+                    placeholder="e.g. My application"
                     value={alias}
                     onChange={(e) => setAlias(e.target.value)}
                     maxLength={80}
@@ -205,7 +205,7 @@ function Index() {
                     <label className="grid gap-1.5 text-sm font-medium">
                       Reference number
                   <Input
-                    placeholder="e.g. 10550740"
+                    placeholder="e.g. 00000000"
                     value={fsref}
                     onChange={(e) => setFsref(e.target.value)}
                     inputMode="numeric"
@@ -217,7 +217,7 @@ function Index() {
                     <label className="grid gap-1.5 text-sm font-medium">
                       Serial number
                   <Input
-                    placeholder="e.g. AX008490"
+                    placeholder="e.g. ABC123456"
                     value={fserial}
                     onChange={(e) => setFserial(e.target.value)}
                     maxLength={40}
@@ -351,7 +351,7 @@ function Index() {
               </p>
               <p className="mt-1 text-xs">Built for the South African firearm community.</p>
               <p className="mt-1 text-xs">
-                Bug fixes or issues? Email{" "}
+                Found a bug or need help? Email{" "}
                 <a className="font-medium text-primary underline-offset-4 hover:underline" href="mailto:jjoubert@fibco.co.za">
                   jjoubert@fibco.co.za
                 </a>
