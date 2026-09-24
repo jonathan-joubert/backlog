@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ChevronDown,
+  ExternalLink,
   Github,
   LockKeyhole,
   Moon,
@@ -345,12 +346,20 @@ function Index() {
         <footer className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="font-medium text-foreground">Backlog is open source.</p>
-              <p className="mt-1 text-xs">Built for the South African firearm community. Repository link coming soon.</p>
+              <p className="flex items-center gap-2 font-medium text-foreground">
+                <Github className="h-4 w-4" /> Backlog is open source.
+              </p>
+              <p className="mt-1 text-xs">Built for the South African firearm community.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="ghost" size="sm" disabled title="GitHub repository link coming soon">
-                <Github className="h-4 w-4" /> GitHub
+              <Button variant="ghost" size="sm" asChild>
+                <a
+                  href="https://www.saps.gov.za/services/firearm_status_enquiry.php"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Official SAPS website <ExternalLink className="h-4 w-4" />
+                </a>
               </Button>
               <Collapsible open={privacyOpen} onOpenChange={setPrivacyOpen}>
                 <CollapsibleTrigger asChild>
