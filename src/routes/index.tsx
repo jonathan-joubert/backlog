@@ -357,23 +357,37 @@ function Index() {
                 </a>
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
+            <div className="flex flex-col items-start gap-2 sm:items-end">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <a
+                    href="https://www.saps.gov.za/services/firearm_status_enquiry.php"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Official SAPS website <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Collapsible open={privacyOpen} onOpenChange={setPrivacyOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" aria-expanded={privacyOpen}>
+                      Privacy policy <ChevronDown className={`h-4 w-4 transition-transform ${privacyOpen ? "rotate-180" : ""}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                </Collapsible>
+              </div>
+              <p className="text-xs sm:text-right">
+                Looking for a sport shooting club in Johannesburg?{" "}
                 <a
-                  href="https://www.saps.gov.za/services/firearm_status_enquiry.php"
+                  className="inline-flex items-center gap-1 font-semibold text-primary underline-offset-4 hover:underline"
+                  href="https://tssc.org.za/"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Official SAPS website <ExternalLink className="h-4 w-4" />
+                  <span className="text-base leading-none" aria-hidden="true">♆</span>
+                  TSSC
                 </a>
-              </Button>
-              <Collapsible open={privacyOpen} onOpenChange={setPrivacyOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" aria-expanded={privacyOpen}>
-                    Privacy policy <ChevronDown className={`h-4 w-4 transition-transform ${privacyOpen ? "rotate-180" : ""}`} />
-                  </Button>
-                </CollapsibleTrigger>
-              </Collapsible>
+              </p>
             </div>
           </div>
           <Collapsible open={privacyOpen} onOpenChange={setPrivacyOpen}>
