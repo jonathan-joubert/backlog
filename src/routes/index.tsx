@@ -153,8 +153,8 @@ function Index() {
                       : "bg-destructive"
                 }`}
               />
-               SAPS portal
-              {health.isLoading ? "checking…" : health.data?.isUp ? "online" : "offline"}
+              <span>SAPS portal</span>
+              <span>{health.isLoading ? "checking…" : health.data?.isUp ? "online" : "offline"}</span>
             </div>
             <Button
               variant="outline"
@@ -350,6 +350,12 @@ function Index() {
                 <Github className="h-4 w-4" /> Backlog is open source.
               </p>
               <p className="mt-1 text-xs">Built for the South African firearm community.</p>
+              <p className="mt-1 text-xs">
+                Bug fixes or issues? Email{" "}
+                <a className="font-medium text-primary underline-offset-4 hover:underline" href="mailto:jjoubert@fibco.co.za">
+                  jjoubert@fibco.co.za
+                </a>
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="ghost" size="sm" asChild>
