@@ -8,3 +8,5 @@
 - [x] Secure the static site and prevent accidental secret exposure
 - [x] Polish Backlog branding, mobile layout, saved applications, notice, privacy policy, and footer
 - [x] Verify desktop/mobile behaviour and the production build
+- [x] Add the official SAPS website link and remove repository placeholder copy
+- [x] Restyle light and dark modes with a Gruvbox-inspired blue palette
