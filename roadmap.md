@@ -10,3 +10,4 @@
 - [x] Verify desktop/mobile behaviour and the production build
 - [x] Add the official SAPS website link and remove repository placeholder copy
 - [x] Restyle light and dark modes with a Gruvbox-inspired blue palette
+- [x] Refine the palette to Nord-style blues, fix portal status spacing, and add issue contact email
