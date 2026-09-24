@@ -153,7 +153,7 @@ function Index() {
                       : "bg-destructive"
                 }`}
               />
-              <span>SAPS portal</span>
+              <span>SAPS portal:</span>
               <span>{health.isLoading ? "checking…" : health.data?.isUp ? "online" : "offline"}</span>
             </div>
             <Button
@@ -346,9 +346,11 @@ function Index() {
         <footer className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
+              <a href="https://github.com/jonathan-joubert/Backlog_Web" target="_blank">
               <p className="flex items-center gap-2 font-medium text-foreground">
                 <Github className="h-4 w-4" /> Backlog is open source.
               </p>
+              </a>
               <p className="mt-1 text-xs">Built for the South African firearm community.</p>
               <p className="mt-1 text-xs">
                 Found a bug or need help? Email{" "}
@@ -377,14 +379,13 @@ function Index() {
                 </Collapsible>
               </div>
               <p className="text-xs sm:text-right">
-                Looking for a sport shooting club in Johannesburg?{" "}
+                Looking for a great sport shooting club in Johannesburg?{" "}
                 <a
                   className="inline-flex items-center gap-1 font-semibold text-primary underline-offset-4 hover:underline"
                   href="https://tssc.org.za/"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <span className="text-base leading-none" aria-hidden="true">♆</span>
                   TSSC
                 </a>
               </p>
