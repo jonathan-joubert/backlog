@@ -11,3 +11,6 @@
 - [x] Add the official SAPS website link and remove repository placeholder copy
 - [x] Restyle light and dark modes with a Gruvbox-inspired blue palette
 - [x] Refine the palette to Nord-style blues, fix portal status spacing, and add issue contact email
+- [x] Submission date + SA working-day counter (red past 120, legal info popup)
+- [x] Edit saved applications
+- [x] TSSC wording "in the Johannesburg area? Check out TSSC" + library trident icon

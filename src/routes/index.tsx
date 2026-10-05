@@ -1,13 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { GiTrident } from "react-icons/gi";
 import {
   AlertTriangle,
+  CalendarDays,
   ChevronDown,
   ExternalLink,
   Github,
+  HelpCircle,
   LockKeyhole,
   Moon,
+  Pencil,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -16,11 +20,13 @@ import {
 } from "lucide-react";
 
 import { checkFirearmStatus, checkSapsHealth, type StatusResult } from "@/lib/saps";
+import { LEGAL_WORKING_DAYS, workingDaysSince } from "@/lib/working-days";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -47,9 +53,67 @@ type FirearmApplication = {
   alias: string;
   fsref: string;
   fserial: string;
+  submittedAt?: string;
 };
 
 const STORAGE_KEY = "saps_apps";
+
+function todayIso() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function WorkingDays({ submittedAt }: { submittedAt?: string }) {
+  if (!submittedAt) return null;
+  const days = workingDaysSince(submittedAt);
+  if (days === null) return null;
+  const overdue = days > LEGAL_WORKING_DAYS;
+  const formatted = new Date(`${submittedAt}T00:00:00`).toLocaleDateString("en-ZA", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+      <span
+        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-medium ${
+          overdue
+            ? "border-destructive/40 bg-destructive/10 text-destructive"
+            : "border-border bg-muted text-muted-foreground"
+        }`}
+      >
+        <CalendarDays className="h-3.5 w-3.5" />
+        {days} working {days === 1 ? "day" : "days"}
+        {overdue && " · overdue"}
+      </span>
+      <span className="text-muted-foreground">since {formatted}</span>
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="About the 120 working day limit"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 text-xs leading-5">
+          <p className="font-semibold text-foreground">The 120 working day limit</p>
+          <p className="mt-1 text-muted-foreground">
+            According to the law, SAPS should process a firearm licence application within 120
+            working days of submission. This count includes Monday to Friday only and excludes
+            South African public holidays.
+          </p>
+          {overdue && (
+            <p className="mt-2 text-destructive">
+              This application is {days - LEGAL_WORKING_DAYS} working days past that limit.
+            </p>
+          )}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
 
 function Index() {
   const [savedApps, setSavedApps] = useState<FirearmApplication[]>([]);
@@ -61,6 +125,9 @@ function Index() {
   const [alias, setAlias] = useState("");
   const [fsref, setFsref] = useState("");
   const [fserial, setFserial] = useState("");
+  const [submittedAt, setSubmittedAt] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -88,12 +155,32 @@ function Index() {
     if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(savedApps));
   }, [savedApps, hydrated]);
 
-  const addApplication = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavedApps((apps) => [...apps, { id: crypto.randomUUID(), alias, fsref, fserial }]);
+  const resetForm = () => {
     setAlias("");
     setFsref("");
     setFserial("");
+    setSubmittedAt("");
+    setEditingId(null);
+  };
+
+  const saveApplication = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fields = { alias, fsref, fserial, submittedAt: submittedAt || undefined };
+    if (editingId) {
+      setSavedApps((apps) => apps.map((a) => (a.id === editingId ? { ...a, ...fields } : a)));
+    } else {
+      setSavedApps((apps) => [...apps, { id: crypto.randomUUID(), ...fields }]);
+    }
+    resetForm();
+  };
+
+  const startEdit = (app: FirearmApplication) => {
+    setEditingId(app.id);
+    setAlias(app.alias);
+    setFsref(app.fsref);
+    setFserial(app.fserial);
+    setSubmittedAt(app.submittedAt ?? "");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const removeApplication = (id: string) =>
@@ -185,50 +272,68 @@ function Index() {
 
         <div className="grid flex-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:gap-8">
           <section className="min-w-0 space-y-6">
-            <Card>
+            <Card ref={formRef}>
               <CardHeader className="p-5 pb-4 sm:p-6 sm:pb-4">
-                <CardTitle className="text-lg">Add an application</CardTitle>
+                <CardTitle className="text-lg">{editingId ? "Edit application" : "Add an application"}</CardTitle>
               </CardHeader>
               <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
-                <form onSubmit={addApplication} className="grid gap-4" autoComplete="off">
+                <form onSubmit={saveApplication} className="grid gap-4" autoComplete="off">
                   <label className="grid gap-1.5 text-sm font-medium">
                     Application name
-                  <Input
-                    placeholder="e.g. My application"
-                    value={alias}
-                    onChange={(e) => setAlias(e.target.value)}
-                    maxLength={80}
-                    required
-                  />
+                    <Input
+                      placeholder="e.g. My application"
+                      value={alias}
+                      onChange={(e) => setAlias(e.target.value)}
+                      maxLength={80}
+                      required
+                    />
                   </label>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="grid gap-1.5 text-sm font-medium">
                       Reference number
-                  <Input
-                    placeholder="e.g. 00000000"
-                    value={fsref}
-                    onChange={(e) => setFsref(e.target.value)}
-                    inputMode="numeric"
-                    maxLength={40}
-                    spellCheck={false}
-                    required
-                  />
+                      <Input
+                        placeholder="e.g. 00000000"
+                        value={fsref}
+                        onChange={(e) => setFsref(e.target.value)}
+                        inputMode="numeric"
+                        maxLength={40}
+                        spellCheck={false}
+                        required
+                      />
                     </label>
                     <label className="grid gap-1.5 text-sm font-medium">
                       Serial number
-                  <Input
-                    placeholder="e.g. ABC123456"
-                    value={fserial}
-                    onChange={(e) => setFserial(e.target.value)}
-                    maxLength={40}
-                    spellCheck={false}
-                    required
-                  />
+                      <Input
+                        placeholder="e.g. ABC123456"
+                        value={fserial}
+                        onChange={(e) => setFserial(e.target.value)}
+                        maxLength={40}
+                        spellCheck={false}
+                        required
+                      />
                     </label>
                   </div>
-                  <Button type="submit" className="w-full">
-                    Save application
-                  </Button>
+                  <label className="grid gap-1.5 text-sm font-medium">
+                    <span>
+                      Date submitted to the DFO <span className="font-normal text-muted-foreground">(optional)</span>
+                    </span>
+                    <Input
+                      type="date"
+                      value={submittedAt}
+                      max={todayIso()}
+                      onChange={(e) => setSubmittedAt(e.target.value)}
+                    />
+                  </label>
+                  <div className="flex gap-2">
+                    <Button type="submit" className="flex-1">
+                      {editingId ? "Save changes" : "Save application"}
+                    </Button>
+                    {editingId && (
+                      <Button type="button" variant="outline" onClick={resetForm}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
                 </form>
                 <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <LockKeyhole className="h-3.5 w-3.5" /> Saved only in this browser on this device.
@@ -257,18 +362,28 @@ function Index() {
               {savedApps.length > 0 && (
                 <div className="max-h-[28rem] space-y-2 overflow-y-auto overscroll-contain pr-1 [scrollbar-gutter:stable]">
               {filteredApps.map((app) => (
-                <Card key={app.id} className="shadow-sm transition-colors hover:border-primary/35">
+                <Card key={app.id} className={`shadow-sm transition-colors hover:border-primary/35 ${editingId === app.id ? "border-primary" : ""}`}>
                   <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="font-medium">{app.alias}</p>
                       <p className="mt-1 font-mono text-xs text-muted-foreground">
                         Ref {maskValue(app.fsref)} · SN {maskValue(app.fserial)}
                       </p>
+                      <WorkingDays submittedAt={app.submittedAt} />
                     </div>
                     <div className="flex gap-2 sm:shrink-0">
                       <Button className="flex-1 sm:flex-none" size="sm" disabled={loading} onClick={() => checkStatus(app)}>
                         <RefreshCw className={`h-4 w-4 ${checkingId === app.id ? "animate-spin" : ""}`} />
                         Check status
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        aria-label={`Edit ${app.alias}`}
+                        title={`Edit ${app.alias}`}
+                        onClick={() => startEdit(app)}
+                      >
+                        <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
@@ -379,13 +494,14 @@ function Index() {
                 </Collapsible>
               </div>
               <p className="text-xs sm:text-right">
-                Looking for a great sport shooting club in Johannesburg?{" "}
+                Looking for a sport shooting club in the Johannesburg area? Check out{" "}
                 <a
                   className="inline-flex items-center gap-1 font-semibold text-primary underline-offset-4 hover:underline"
                   href="https://tssc.org.za/"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
+                  <GiTrident className="h-3.5 w-3.5" aria-hidden="true" />
                   TSSC
                 </a>
               </p>
