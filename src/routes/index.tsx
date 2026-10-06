@@ -125,6 +125,34 @@ function WorkingDays({ submittedAt }: { submittedAt?: string }) {
   );
 }
 
+function StatusDot({ app, result }: { app: FirearmApplication; result?: StatusResult | string }) {
+  let dot: { colour: string; label: string } | null = null;
+  if (typeof result === "string") {
+    dot = { colour: "bg-destructive", label: "Check failed" };
+  } else if (result) {
+    const status = result.status.toLowerCase();
+    if (status.includes("approv")) {
+      dot = { colour: "bg-primary", label: result.status };
+    } else if (status.includes("reject") || status.includes("declin")) {
+      dot = { colour: "bg-destructive", label: result.status };
+    } else {
+      dot = { colour: "bg-accent", label: result.status };
+    }
+  } else if (app.submittedAt) {
+    const days = workingDaysSince(app.submittedAt);
+    if (days !== null && days > LEGAL_WORKING_DAYS) {
+      dot = { colour: "bg-destructive", label: "Overdue" };
+    }
+  }
+  if (!dot) return null;
+  return (
+    <p className="mt-1 flex items-center gap-1.5 text-xs font-medium">
+      <span className={`h-2 w-2 rounded-full ${dot.colour}`} />
+      {dot.label}
+    </p>
+  );
+}
+
 function Index() {
   const [savedApps, setSavedApps] = useState<FirearmApplication[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -383,7 +411,20 @@ function Index() {
             <div className="space-y-3" aria-labelledby="saved-applications-heading">
               <div className="flex items-center justify-between gap-3">
                 <h2 id="saved-applications-heading" className="text-lg font-semibold">Saved applications</h2>
-                <span className="text-xs text-muted-foreground">{savedApps.length} saved</span>
+                <div className="flex items-center gap-2">
+                  {bulk && (
+                    <span className="text-xs text-muted-foreground" aria-live="polite">
+                      checking {bulk.done}/{bulk.total}…
+                    </span>
+                  )}
+                  {savedApps.length > 0 && (
+                    <Button size="sm" variant="outline" disabled={loading || !!bulk} onClick={checkAll}>
+                      <RefreshCw className={`h-4 w-4 ${bulk ? "animate-spin" : ""}`} />
+                      Check all
+                    </Button>
+                  )}
+                  <span className="text-xs text-muted-foreground">{savedApps.length} saved</span>
+                </div>
               </div>
               {savedApps.length > 4 && (
                 <label className="relative block">
@@ -409,9 +450,15 @@ function Index() {
                         Ref {maskValue(app.fsref)} · SN {maskValue(app.fserial)}
                       </p>
                       <WorkingDays submittedAt={app.submittedAt} />
+                      <StatusDot app={app} result={results[app.id]} />
                     </div>
                     <div className="flex gap-2 sm:shrink-0">
-                      <Button className="flex-1 sm:flex-none" size="sm" disabled={loading} onClick={() => checkStatus(app)}>
+                      <Button
+                        className="flex-1 sm:flex-none"
+                        size="sm"
+                        disabled={loading || !!bulk}
+                        onClick={() => checkStatus(app)}
+                      >
                         <RefreshCw className={`h-4 w-4 ${checkingId === app.id ? "animate-spin" : ""}`} />
                         Check status
                       </Button>
