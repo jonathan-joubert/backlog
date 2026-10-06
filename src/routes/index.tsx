@@ -22,6 +22,16 @@ import {
 import { checkFirearmStatus, checkSapsHealth, type StatusResult } from "@/lib/saps";
 import { LEGAL_WORKING_DAYS, workingDaysSince } from "@/lib/working-days";
 import { useTheme } from "@/hooks/use-theme";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,6 +137,7 @@ function Index() {
   const [fserial, setFserial] = useState("");
   const [submittedAt, setSubmittedAt] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<FirearmApplication | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
@@ -390,7 +401,7 @@ function Index() {
                         variant="outline"
                         aria-label={`Remove ${app.alias}`}
                         title={`Remove ${app.alias}`}
-                        onClick={() => removeApplication(app.id)}
+                        onClick={() => setDeleteTarget(app)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -457,6 +468,32 @@ function Index() {
             </Card>
           </section>
         </div>
+
+        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove “{deleteTarget?.alias}”?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently remove this application from this device. This cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (deleteTarget) {
+                    if (editingId === deleteTarget.id) resetForm();
+                    removeApplication(deleteTarget.id);
+                  }
+                  setDeleteTarget(null);
+                }}
+              >
+                Remove
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <footer className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
