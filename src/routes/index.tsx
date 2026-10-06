@@ -125,6 +125,34 @@ function WorkingDays({ submittedAt }: { submittedAt?: string }) {
   );
 }
 
+function StatusDot({ app, result }: { app: FirearmApplication; result?: StatusResult | string }) {
+  let dot: { colour: string; label: string } | null = null;
+  if (typeof result === "string") {
+    dot = { colour: "bg-destructive", label: "Check failed" };
+  } else if (result) {
+    const status = result.status.toLowerCase();
+    if (status.includes("approv")) {
+      dot = { colour: "bg-primary", label: result.status };
+    } else if (status.includes("reject") || status.includes("declin")) {
+      dot = { colour: "bg-destructive", label: result.status };
+    } else {
+      dot = { colour: "bg-accent", label: result.status };
+    }
+  } else if (app.submittedAt) {
+    const days = workingDaysSince(app.submittedAt);
+    if (days !== null && days > LEGAL_WORKING_DAYS) {
+      dot = { colour: "bg-destructive", label: "Overdue" };
+    }
+  }
+  if (!dot) return null;
+  return (
+    <p className="mt-1 flex items-center gap-1.5 text-xs font-medium">
+      <span className={`h-2 w-2 rounded-full ${dot.colour}`} />
+      {dot.label}
+    </p>
+  );
+}
+
 function Index() {
   const [savedApps, setSavedApps] = useState<FirearmApplication[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -138,6 +166,8 @@ function Index() {
   const [submittedAt, setSubmittedAt] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FirearmApplication | null>(null);
+  const [results, setResults] = useState<Record<string, StatusResult | string>>({});
+  const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
@@ -216,12 +246,38 @@ function Index() {
     try {
       const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
       setActiveResult(result);
+      setResults((r) => ({ ...r, [app.id]: result }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch status.");
+      const message = err instanceof Error ? err.message : "Failed to fetch status.";
+      setError(message);
+      setResults((r) => ({ ...r, [app.id]: message }));
     } finally {
       setLoading(false);
       setCheckingId(null);
     }
+  };
+
+  const checkAll = async () => {
+    if (savedApps.length === 0 || bulk) return;
+    setResults({});
+    setBulk({ done: 0, total: savedApps.length });
+    let done = 0;
+    for (const app of savedApps) {
+      setCheckingId(app.id);
+      try {
+        const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
+        setResults((r) => ({ ...r, [app.id]: result }));
+      } catch (err) {
+        setResults((r) => ({
+          ...r,
+          [app.id]: err instanceof Error ? err.message : "Failed to fetch status.",
+        }));
+      }
+      done += 1;
+      setBulk({ done, total: savedApps.length });
+    }
+    setCheckingId(null);
+    setBulk(null);
   };
 
   return (
@@ -355,7 +411,20 @@ function Index() {
             <div className="space-y-3" aria-labelledby="saved-applications-heading">
               <div className="flex items-center justify-between gap-3">
                 <h2 id="saved-applications-heading" className="text-lg font-semibold">Saved applications</h2>
-                <span className="text-xs text-muted-foreground">{savedApps.length} saved</span>
+                <div className="flex items-center gap-2">
+                  {bulk && (
+                    <span className="text-xs text-muted-foreground" aria-live="polite">
+                      checking {bulk.done}/{bulk.total}…
+                    </span>
+                  )}
+                  {savedApps.length > 0 && (
+                    <Button size="sm" variant="outline" disabled={loading || !!bulk} onClick={checkAll}>
+                      <RefreshCw className={`h-4 w-4 ${bulk ? "animate-spin" : ""}`} />
+                      Check all
+                    </Button>
+                  )}
+                  <span className="text-xs text-muted-foreground">{savedApps.length} saved</span>
+                </div>
               </div>
               {savedApps.length > 4 && (
                 <label className="relative block">
@@ -381,9 +450,15 @@ function Index() {
                         Ref {maskValue(app.fsref)} · SN {maskValue(app.fserial)}
                       </p>
                       <WorkingDays submittedAt={app.submittedAt} />
+                      <StatusDot app={app} result={results[app.id]} />
                     </div>
                     <div className="flex gap-2 sm:shrink-0">
-                      <Button className="flex-1 sm:flex-none" size="sm" disabled={loading} onClick={() => checkStatus(app)}>
+                      <Button
+                        className="flex-1 sm:flex-none"
+                        size="sm"
+                        disabled={loading || !!bulk}
+                        onClick={() => checkStatus(app)}
+                      >
                         <RefreshCw className={`h-4 w-4 ${checkingId === app.id ? "animate-spin" : ""}`} />
                         Check status
                       </Button>
