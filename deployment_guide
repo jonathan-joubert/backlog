@@ -1,0 +1,4 @@
+make sure that when you are running npm install && npm run build that the .env is present with:
+VITE_SAPS_PROXY_URL=https://backlog.fibco.co.za/proxy.php
+then once it is built make sure when you deploy the contents of the dist folder onto the cpanel that you also include the .env and 
+the cpanel_extras/proxy.php both in the root
