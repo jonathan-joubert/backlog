@@ -138,6 +138,8 @@ function Index() {
   const [submittedAt, setSubmittedAt] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FirearmApplication | null>(null);
+  const [results, setResults] = useState<Record<string, StatusResult | string>>({});
+  const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
@@ -216,12 +218,38 @@ function Index() {
     try {
       const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
       setActiveResult(result);
+      setResults((r) => ({ ...r, [app.id]: result }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch status.");
+      const message = err instanceof Error ? err.message : "Failed to fetch status.";
+      setError(message);
+      setResults((r) => ({ ...r, [app.id]: message }));
     } finally {
       setLoading(false);
       setCheckingId(null);
     }
+  };
+
+  const checkAll = async () => {
+    if (savedApps.length === 0 || bulk) return;
+    setResults({});
+    setBulk({ done: 0, total: savedApps.length });
+    let done = 0;
+    for (const app of savedApps) {
+      setCheckingId(app.id);
+      try {
+        const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
+        setResults((r) => ({ ...r, [app.id]: result }));
+      } catch (err) {
+        setResults((r) => ({
+          ...r,
+          [app.id]: err instanceof Error ? err.message : "Failed to fetch status.",
+        }));
+      }
+      done += 1;
+      setBulk({ done, total: savedApps.length });
+    }
+    setCheckingId(null);
+    setBulk(null);
   };
 
   return (
