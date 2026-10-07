@@ -508,9 +508,9 @@ function Index() {
             </Card>
 
             <div className="space-y-3" aria-labelledby="saved-applications-heading">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 id="saved-applications-heading" className="text-lg font-semibold">Saved applications</h2>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {bulk && (
                     <span className="text-xs text-muted-foreground" aria-live="polite">
                       checking {bulk.done}/{bulk.total}…
@@ -522,9 +522,33 @@ function Index() {
                       Check all
                     </Button>
                   )}
+                  {savedApps.length > 0 && (
+                    <Button size="sm" variant="outline" onClick={exportBackup} title="Download a backup of your saved applications">
+                      <Download className="h-4 w-4" />
+                      Export
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} title="Restore saved applications from a backup file">
+                    <Upload className="h-4 w-4" />
+                    Import
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/json,.json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) importBackup(file);
+                      e.target.value = "";
+                    }}
+                  />
                   <span className="text-xs text-muted-foreground">{savedApps.length} saved</span>
                 </div>
               </div>
+              {importMsg && (
+                <p className="text-xs text-muted-foreground" role="status">{importMsg}</p>
+              )}
               {savedApps.length > 4 && (
                 <label className="relative block">
                   <span className="sr-only">Search saved applications</span>
