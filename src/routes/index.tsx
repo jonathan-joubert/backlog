@@ -484,11 +484,17 @@ function Index() {
                       onChange={(e) => setSubmittedAt(e.target.value)}
                     />
                   </label>
+                  {duplicate && (
+                    <p className="rounded-lg border border-accent/40 bg-accent/10 px-3 py-2 text-xs leading-5 text-foreground" role="alert">
+                      An application with this reference and serial number is already saved. Select
+                      “Save anyway” to keep both, or change the details.
+                    </p>
+                  )}
                   <div className="flex gap-2">
                     <Button type="submit" className="flex-1">
-                      {editingId ? "Save changes" : "Save application"}
+                      {duplicate ? "Save anyway" : editingId ? "Save changes" : "Save application"}
                     </Button>
-                    {editingId && (
+                    {(editingId || duplicate) && (
                       <Button type="button" variant="outline" onClick={resetForm}>
                         Cancel
                       </Button>
