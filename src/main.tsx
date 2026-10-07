@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { routeTree } from "./routeTree.gen";
 import "./styles.css";
+import { registerServiceWorker } from "./lib/register-sw";
 
 const queryClient = new QueryClient();
 
@@ -34,3 +35,5 @@ createRoot(rootElement).render(
     </QueryClientProvider>
   </StrictMode>,
 );
+
+void registerServiceWorker();
