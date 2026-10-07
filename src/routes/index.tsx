@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CalendarDays,
   ChevronDown,
+  Download,
   ExternalLink,
   Github,
   HelpCircle,
@@ -17,6 +18,7 @@ import {
   ShieldCheck,
   Sun,
   Trash2,
+  Upload,
 } from "lucide-react";
 
 import { checkFirearmStatus, checkSapsHealth, type StatusResult } from "@/lib/saps";
@@ -169,9 +171,12 @@ function Index() {
   const [results, setResults] = useState<Record<string, StatusResult | string>>({});
   const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [duplicate, setDuplicate] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
 
   const { theme, toggle } = useTheme();
   const health = useQuery({
