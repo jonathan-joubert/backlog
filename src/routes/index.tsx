@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CalendarDays,
   ChevronDown,
+  Download,
   ExternalLink,
   Github,
   HelpCircle,
@@ -17,6 +18,7 @@ import {
   ShieldCheck,
   Sun,
   Trash2,
+  Upload,
 } from "lucide-react";
 
 import { checkFirearmStatus, checkSapsHealth, type StatusResult } from "@/lib/saps";
@@ -169,9 +171,12 @@ function Index() {
   const [results, setResults] = useState<Record<string, StatusResult | string>>({});
   const [bulk, setBulk] = useState<{ done: number; total: number } | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [duplicate, setDuplicate] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
 
   const { theme, toggle } = useTheme();
   const health = useQuery({
@@ -202,10 +207,23 @@ function Index() {
     setFserial("");
     setSubmittedAt("");
     setEditingId(null);
+    setDuplicate(false);
   };
+
+  const isDuplicate = (ref: string, serial: string, excludeId?: string | null) =>
+    savedApps.some(
+      (a) =>
+        a.id !== excludeId &&
+        a.fsref.trim().toLowerCase() === ref.trim().toLowerCase() &&
+        a.fserial.trim().toLowerCase() === serial.trim().toLowerCase(),
+    );
 
   const saveApplication = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDuplicate(fsref, fserial, editingId) && !duplicate) {
+      setDuplicate(true);
+      return;
+    }
     const fields = { alias, fsref, fserial, submittedAt: submittedAt || undefined };
     if (editingId) {
       setSavedApps((apps) => apps.map((a) => (a.id === editingId ? { ...a, ...fields } : a)));
@@ -213,6 +231,81 @@ function Index() {
       setSavedApps((apps) => [...apps, { id: crypto.randomUUID(), ...fields }]);
     }
     resetForm();
+  };
+
+  const exportBackup = () => {
+    const blob = new Blob(
+      [
+        JSON.stringify(
+          { version: 1, exportedAt: new Date().toISOString(), applications: savedApps },
+          null,
+          2,
+        ),
+      ],
+      { type: "application/json" },
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `backlog-backup-${todayIso()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importBackup = (file: File) => {
+    setImportMsg("");
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        const list = Array.isArray(parsed) ? parsed : parsed?.applications;
+        if (!Array.isArray(list)) throw new Error("invalid");
+        const valid = list.filter(
+          (a): a is { alias: string; fsref: string; fserial: string; submittedAt?: string } =>
+            a &&
+            typeof a.alias === "string" &&
+            typeof a.fsref === "string" &&
+            typeof a.fserial === "string",
+        );
+        if (valid.length === 0) {
+          setImportMsg("No applications found in that file.");
+          return;
+        }
+        let added = 0;
+        let skipped = 0;
+        setSavedApps((apps) => {
+          const next = [...apps];
+          for (const a of valid) {
+            const dupe = next.some(
+              (x) =>
+                x.fsref.trim().toLowerCase() === a.fsref.trim().toLowerCase() &&
+                x.fserial.trim().toLowerCase() === a.fserial.trim().toLowerCase(),
+            );
+            if (dupe) {
+              skipped += 1;
+              continue;
+            }
+            next.push({
+              id: crypto.randomUUID(),
+              alias: a.alias,
+              fsref: a.fsref,
+              fserial: a.fserial,
+              submittedAt: typeof a.submittedAt === "string" ? a.submittedAt : undefined,
+            });
+            added += 1;
+          }
+          return next;
+        });
+        setImportMsg(
+          `Imported ${added} application${added === 1 ? "" : "s"}${
+            skipped ? `, skipped ${skipped} duplicate${skipped === 1 ? "" : "s"}` : ""
+          }.`,
+        );
+      } catch {
+        setImportMsg("That file could not be read. Choose a Backlog backup (.json) file.");
+      }
+    };
+    reader.readAsText(file);
   };
 
   const startEdit = (app: FirearmApplication) => {
@@ -391,11 +484,17 @@ function Index() {
                       onChange={(e) => setSubmittedAt(e.target.value)}
                     />
                   </label>
+                  {duplicate && (
+                    <p className="rounded-lg border border-accent/40 bg-accent/10 px-3 py-2 text-xs leading-5 text-foreground" role="alert">
+                      An application with this reference and serial number is already saved. Select
+                      “Save anyway” to keep both, or change the details.
+                    </p>
+                  )}
                   <div className="flex gap-2">
                     <Button type="submit" className="flex-1">
-                      {editingId ? "Save changes" : "Save application"}
+                      {duplicate ? "Save anyway" : editingId ? "Save changes" : "Save application"}
                     </Button>
-                    {editingId && (
+                    {(editingId || duplicate) && (
                       <Button type="button" variant="outline" onClick={resetForm}>
                         Cancel
                       </Button>
@@ -409,9 +508,9 @@ function Index() {
             </Card>
 
             <div className="space-y-3" aria-labelledby="saved-applications-heading">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 id="saved-applications-heading" className="text-lg font-semibold">Saved applications</h2>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {bulk && (
                     <span className="text-xs text-muted-foreground" aria-live="polite">
                       checking {bulk.done}/{bulk.total}…
@@ -423,9 +522,33 @@ function Index() {
                       Check all
                     </Button>
                   )}
+                  {savedApps.length > 0 && (
+                    <Button size="sm" variant="outline" onClick={exportBackup} title="Download a backup of your saved applications">
+                      <Download className="h-4 w-4" />
+                      Export
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} title="Restore saved applications from a backup file">
+                    <Upload className="h-4 w-4" />
+                    Import
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/json,.json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) importBackup(file);
+                      e.target.value = "";
+                    }}
+                  />
                   <span className="text-xs text-muted-foreground">{savedApps.length} saved</span>
                 </div>
               </div>
+              {importMsg && (
+                <p className="text-xs text-muted-foreground" role="status">{importMsg}</p>
+              )}
               {savedApps.length > 4 && (
                 <label className="relative block">
                   <span className="sr-only">Search saved applications</span>
