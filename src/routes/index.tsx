@@ -207,10 +207,23 @@ function Index() {
     setFserial("");
     setSubmittedAt("");
     setEditingId(null);
+    setDuplicate(false);
   };
+
+  const isDuplicate = (ref: string, serial: string, excludeId?: string | null) =>
+    savedApps.some(
+      (a) =>
+        a.id !== excludeId &&
+        a.fsref.trim().toLowerCase() === ref.trim().toLowerCase() &&
+        a.fserial.trim().toLowerCase() === serial.trim().toLowerCase(),
+    );
 
   const saveApplication = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDuplicate(fsref, fserial, editingId) && !duplicate) {
+      setDuplicate(true);
+      return;
+    }
     const fields = { alias, fsref, fserial, submittedAt: submittedAt || undefined };
     if (editingId) {
       setSavedApps((apps) => apps.map((a) => (a.id === editingId ? { ...a, ...fields } : a)));
@@ -218,6 +231,81 @@ function Index() {
       setSavedApps((apps) => [...apps, { id: crypto.randomUUID(), ...fields }]);
     }
     resetForm();
+  };
+
+  const exportBackup = () => {
+    const blob = new Blob(
+      [
+        JSON.stringify(
+          { version: 1, exportedAt: new Date().toISOString(), applications: savedApps },
+          null,
+          2,
+        ),
+      ],
+      { type: "application/json" },
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `backlog-backup-${todayIso()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importBackup = (file: File) => {
+    setImportMsg("");
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        const list = Array.isArray(parsed) ? parsed : parsed?.applications;
+        if (!Array.isArray(list)) throw new Error("invalid");
+        const valid = list.filter(
+          (a): a is { alias: string; fsref: string; fserial: string; submittedAt?: string } =>
+            a &&
+            typeof a.alias === "string" &&
+            typeof a.fsref === "string" &&
+            typeof a.fserial === "string",
+        );
+        if (valid.length === 0) {
+          setImportMsg("No applications found in that file.");
+          return;
+        }
+        let added = 0;
+        let skipped = 0;
+        setSavedApps((apps) => {
+          const next = [...apps];
+          for (const a of valid) {
+            const dupe = next.some(
+              (x) =>
+                x.fsref.trim().toLowerCase() === a.fsref.trim().toLowerCase() &&
+                x.fserial.trim().toLowerCase() === a.fserial.trim().toLowerCase(),
+            );
+            if (dupe) {
+              skipped += 1;
+              continue;
+            }
+            next.push({
+              id: crypto.randomUUID(),
+              alias: a.alias,
+              fsref: a.fsref,
+              fserial: a.fserial,
+              submittedAt: typeof a.submittedAt === "string" ? a.submittedAt : undefined,
+            });
+            added += 1;
+          }
+          return next;
+        });
+        setImportMsg(
+          `Imported ${added} application${added === 1 ? "" : "s"}${
+            skipped ? `, skipped ${skipped} duplicate${skipped === 1 ? "" : "s"}` : ""
+          }.`,
+        );
+      } catch {
+        setImportMsg("That file could not be read. Choose a Backlog backup (.json) file.");
+      }
+    };
+    reader.readAsText(file);
   };
 
   const startEdit = (app: FirearmApplication) => {
