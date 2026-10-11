@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Download, X } from "lucide-react";
+import { Download, Share, SquarePlus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const DISMISSED_KEY = "pwa_install_dismissed";
+const SHOW_DELAY_MS = 1500;
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -18,6 +19,11 @@ function isInstalledAsPwa(): boolean {
   return false;
 }
 
+function isIos(): boolean {
+  const ua = window.navigator.userAgent;
+  return /iPad|iPhone|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
+}
+
 export function InstallPrompt() {
   const isMobile = useIsMobile();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -29,8 +35,11 @@ export function InstallPrompt() {
     if (isInstalledAsPwa()) return;
     if (localStorage.getItem(DISMISSED_KEY) === "1") return;
 
+    let timer: number | undefined;
+
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
+      if (timer !== undefined) window.clearTimeout(timer);
       setDeferredPrompt(event as BeforeInstallPromptEvent);
       setVisible(true);
     };
@@ -42,15 +51,22 @@ export function InstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
     window.addEventListener("appinstalled", onAppInstalled);
+
+    // If the browser never offers a native install dialog (e.g. iOS Safari),
+    // fall back to manual Add to Home Screen instructions after a short delay.
+    timer = window.setTimeout(() => setVisible(true), SHOW_DELAY_MS);
+
     return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
       window.removeEventListener("appinstalled", onAppInstalled);
     };
   }, [isMobile]);
 
-  if (!visible || !deferredPrompt) return null;
+  if (!visible) return null;
 
   const handleInstall = async () => {
+    if (!deferredPrompt) return;
     setInstalling(true);
     try {
       await deferredPrompt.prompt();
@@ -69,6 +85,8 @@ export function InstallPrompt() {
     setVisible(false);
   };
 
+  const ios = isIos();
+
   return (
     <div
       role="dialog"
@@ -81,12 +99,48 @@ export function InstallPrompt() {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-card-foreground">Install Backlog</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Add Backlog to your home screen for quick access and offline use.
-          </p>
-          <Button size="sm" className="mt-3" onClick={handleInstall} disabled={installing}>
-            {installing ? "Installing…" : "Install"}
-          </Button>
+          {deferredPrompt ? (
+            <>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Add Backlog to your home screen for quick access and offline use.
+              </p>
+              <Button size="sm" className="mt-3" onClick={handleInstall} disabled={installing}>
+                {installing ? "Installing…" : "Install"}
+              </Button>
+            </>
+          ) : ios ? (
+            <ol className="mt-1.5 list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
+              <li className="flex items-center gap-1">
+                Tap the <Share className="inline h-3.5 w-3.5 shrink-0" aria-label="Share" /> Share
+                button in Safari.
+              </li>
+              <li className="flex items-center gap-1">
+                Scroll down and tap{" "}
+                <SquarePlus className="inline h-3.5 w-3.5 shrink-0" aria-label="Add" />{" "}
+                <span className="font-medium text-card-foreground">Add to Home Screen</span>.
+              </li>
+              <li>
+                Tap <span className="font-medium text-card-foreground">Add</span> to confirm.
+              </li>
+            </ol>
+          ) : (
+            <ol className="mt-1.5 list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
+              <li>
+                Open your browser's menu (<span aria-label="menu">⋮</span> or{" "}
+                <span aria-label="menu">≡</span>).
+              </li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-card-foreground">
+                  Add to Home screen
+                </span>{" "}
+                or <span className="font-medium text-card-foreground">Install app</span>.
+              </li>
+              <li>
+                Tap <span className="font-medium text-card-foreground">Add</span> to confirm.
+              </li>
+            </ol>
+          )}
         </div>
         <button
           type="button"
