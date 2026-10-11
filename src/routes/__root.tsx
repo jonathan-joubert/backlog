@@ -26,6 +26,11 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  component: () => <Outlet />,
+  component: () => (
+    <>
+      <InstallPrompt />
+      <Outlet />
+    </>
+  ),
   notFoundComponent: NotFoundComponent,
 });
