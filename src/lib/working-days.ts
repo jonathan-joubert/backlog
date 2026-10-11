@@ -32,6 +32,7 @@ const SPECIAL_HOLIDAYS: [number, number, number][] = [
   [2022, 11, 27], // Rugby World Cup / Day of Goodwill observed
   [2023, 11, 15], // Rugby World Cup victory
   [2024, 4, 29], // National elections
+  [2026, 10, 4], // Local government elections (Proclamation Notice 346 of 2026)
 ];
 
 const cache = new Map<number, Set<string>>();
