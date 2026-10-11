@@ -271,31 +271,29 @@ function Index() {
           setImportMsg("No applications found in that file.");
           return;
         }
+        const next = [...savedApps];
         let added = 0;
         let skipped = 0;
-        setSavedApps((apps) => {
-          const next = [...apps];
-          for (const a of valid) {
-            const dupe = next.some(
-              (x) =>
-                x.fsref.trim().toLowerCase() === a.fsref.trim().toLowerCase() &&
-                x.fserial.trim().toLowerCase() === a.fserial.trim().toLowerCase(),
-            );
-            if (dupe) {
-              skipped += 1;
-              continue;
-            }
-            next.push({
-              id: crypto.randomUUID(),
-              alias: a.alias,
-              fsref: a.fsref,
-              fserial: a.fserial,
-              submittedAt: typeof a.submittedAt === "string" ? a.submittedAt : undefined,
-            });
-            added += 1;
+        for (const a of valid) {
+          const dupe = next.some(
+            (x) =>
+              x.fsref.trim().toLowerCase() === a.fsref.trim().toLowerCase() &&
+              x.fserial.trim().toLowerCase() === a.fserial.trim().toLowerCase(),
+          );
+          if (dupe) {
+            skipped += 1;
+            continue;
           }
-          return next;
-        });
+          next.push({
+            id: crypto.randomUUID(),
+            alias: a.alias,
+            fsref: a.fsref,
+            fserial: a.fserial,
+            submittedAt: typeof a.submittedAt === "string" ? a.submittedAt : undefined,
+          });
+          added += 1;
+        }
+        if (added > 0) setSavedApps(next);
         setImportMsg(
           `Imported ${added} application${added === 1 ? "" : "s"}${
             skipped ? `, skipped ${skipped} duplicate${skipped === 1 ? "" : "s"}` : ""
