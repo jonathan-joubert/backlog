@@ -1,6 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { Outlet, Link, createRootRouteWithContext } from "@tanstack/react-router";
 
+import { InstallPrompt } from "@/components/InstallPrompt";
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
