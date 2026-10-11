@@ -694,7 +694,11 @@ function Index() {
         <footer className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <a href="https://github.com/jonathan-joubert/Backlog_Web" target="_blank">
+              <a
+                href="https://github.com/jonathan-joubert/backlog"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
               <p className="flex items-center gap-2 font-medium text-foreground">
                 <Github className="h-4 w-4" /> Backlog is open source.
               </p>
