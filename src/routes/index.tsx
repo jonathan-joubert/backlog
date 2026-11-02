@@ -199,10 +199,14 @@ function Index() {
         /* ignore corrupt storage */
       }
     }
-    const rawCooldown = Number(localStorage.getItem(COOLDOWN_KEY) ?? "0");
-    if (rawCooldown > Date.now()) {
-      setCooldownUntil(rawCooldown);
-      setNow(Date.now());
+    try {
+      const rawCooldowns = JSON.parse(localStorage.getItem(COOLDOWN_KEY) ?? "{}");
+      if (rawCooldowns && typeof rawCooldowns === "object") {
+        setCooldowns(rawCooldowns);
+        setNow(Date.now());
+      }
+    } catch {
+      /* ignore corrupt storage */
     }
     setHydrated(true);
   }, []);
@@ -211,8 +215,12 @@ function Index() {
     if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(savedApps));
   }, [savedApps, hydrated]);
 
-  const cooldownRemaining = Math.max(0, cooldownUntil - now);
-  const cooldownActive = cooldownRemaining > 0;
+  const remainingFor = (appId: string) => Math.max(0, (cooldowns[appId] ?? 0) - now);
+  const cooldownActive = useMemo(
+    () => savedApps.some((app) => remainingFor(app.id) > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cooldowns, now, savedApps],
+  );
 
   useEffect(() => {
     if (!cooldownActive) return;
@@ -220,13 +228,16 @@ function Index() {
     return () => clearInterval(tick);
   }, [cooldownActive]);
 
-  // Only a successful check that returned usable data from SAPS starts the
-  // cooldown — failed or unusable checks stay free so users can retry at once.
-  const startCooldown = () => {
-    const until = Date.now() + COOLDOWN_MS;
-    setCooldownUntil(until);
+  // Only a successful check that returned usable data from SAPS starts that
+  // application's cooldown — failed or unusable checks stay free so users can
+  // retry at once. Each application is timed individually.
+  const startCooldown = (appId: string) => {
+    setCooldowns((prev) => {
+      const next = { ...prev, [appId]: Date.now() + COOLDOWN_MS };
+      localStorage.setItem(COOLDOWN_KEY, JSON.stringify(next));
+      return next;
+    });
     setNow(Date.now());
-    localStorage.setItem(COOLDOWN_KEY, String(until));
   };
 
   const formatRemaining = (ms: number) => {
