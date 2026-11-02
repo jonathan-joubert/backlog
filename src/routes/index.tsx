@@ -371,6 +371,7 @@ function Index() {
       const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
       setActiveResult(result);
       setResults((r) => ({ ...r, [app.id]: result }));
+      startCooldown();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch status.";
       setError(message);
@@ -391,6 +392,7 @@ function Index() {
       try {
         const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
         setResults((r) => ({ ...r, [app.id]: result }));
+        startCooldown();
       } catch (err) {
         setResults((r) => ({
           ...r,
