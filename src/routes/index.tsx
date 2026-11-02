@@ -550,9 +550,19 @@ function Index() {
                     </span>
                   )}
                   {savedApps.length > 0 && (
-                    <Button size="sm" variant="outline" disabled={loading || !!bulk} onClick={checkAll}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={loading || !!bulk || cooldownActive}
+                      onClick={checkAll}
+                      title={
+                        cooldownActive
+                          ? "To avoid disrupting the SAPS website, wait before checking again."
+                          : "Check every saved application"
+                      }
+                    >
                       <RefreshCw className={`h-4 w-4 ${bulk ? "animate-spin" : ""}`} />
-                      Check all
+                      {cooldownActive ? `Wait ${formatRemaining(cooldownRemaining)}` : "Check all"}
                     </Button>
                   )}
                   {savedApps.length > 0 && (
