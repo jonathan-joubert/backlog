@@ -382,7 +382,7 @@ function Index() {
       const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
       setActiveResult(result);
       setResults((r) => ({ ...r, [app.id]: result }));
-      startCooldown();
+      startCooldown(app.id);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch status.";
       setError(message);
@@ -394,16 +394,18 @@ function Index() {
   };
 
   const checkAll = async () => {
-    if (savedApps.length === 0 || bulk) return;
+    // Skip applications that are still on their own cooldown.
+    const eligible = savedApps.filter((app) => remainingFor(app.id) <= 0);
+    if (eligible.length === 0 || bulk) return;
     setResults({});
-    setBulk({ done: 0, total: savedApps.length });
+    setBulk({ done: 0, total: eligible.length });
     let done = 0;
-    for (const app of savedApps) {
+    for (const app of eligible) {
       setCheckingId(app.id);
       try {
         const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
         setResults((r) => ({ ...r, [app.id]: result }));
-        startCooldown();
+        startCooldown(app.id);
       } catch (err) {
         setResults((r) => ({
           ...r,
