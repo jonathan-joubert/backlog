@@ -180,7 +180,7 @@ function Index() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
   const [importMsg, setImportMsg] = useState("");
-  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
   const [now, setNow] = useState(Date.now());
 
   const { theme, toggle } = useTheme();
