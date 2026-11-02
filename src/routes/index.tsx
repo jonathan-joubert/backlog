@@ -589,6 +589,12 @@ function Index() {
                   <span className="text-xs text-muted-foreground">{savedApps.length} saved</span>
                 </div>
               </div>
+              {cooldownActive && !bulk && (
+                <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
+                  To avoid disrupting the SAPS website, the next check is available in{" "}
+                  {formatRemaining(cooldownRemaining)}. Failed checks are not affected.
+                </p>
+              )}
               {importMsg && (
                 <p className="text-xs text-muted-foreground" role="status">{importMsg}</p>
               )}
