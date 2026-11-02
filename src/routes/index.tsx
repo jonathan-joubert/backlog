@@ -68,6 +68,9 @@ type FirearmApplication = {
   submittedAt?: string;
 };
 
+const COOLDOWN_MS = 3 * 60 * 1000;
+const COOLDOWN_KEY = "saps_cooldown_until";
+
 const STORAGE_KEY = "saps_apps";
 
 function todayIso() {
