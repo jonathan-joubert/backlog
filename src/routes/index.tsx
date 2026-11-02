@@ -68,6 +68,9 @@ type FirearmApplication = {
   submittedAt?: string;
 };
 
+const COOLDOWN_MS = 3 * 60 * 1000;
+const COOLDOWN_KEY = "saps_cooldown_until";
+
 const STORAGE_KEY = "saps_apps";
 
 function todayIso() {
@@ -177,6 +180,8 @@ function Index() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
   const [importMsg, setImportMsg] = useState("");
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [now, setNow] = useState(Date.now());
 
   const { theme, toggle } = useTheme();
   const health = useQuery({
@@ -194,12 +199,40 @@ function Index() {
         /* ignore corrupt storage */
       }
     }
+    const rawCooldown = Number(localStorage.getItem(COOLDOWN_KEY) ?? "0");
+    if (rawCooldown > Date.now()) {
+      setCooldownUntil(rawCooldown);
+      setNow(Date.now());
+    }
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(savedApps));
   }, [savedApps, hydrated]);
+
+  const cooldownRemaining = Math.max(0, cooldownUntil - now);
+  const cooldownActive = cooldownRemaining > 0;
+
+  useEffect(() => {
+    if (!cooldownActive) return;
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, [cooldownActive]);
+
+  // Only a successful check that returned usable data from SAPS starts the
+  // cooldown — failed or unusable checks stay free so users can retry at once.
+  const startCooldown = () => {
+    const until = Date.now() + COOLDOWN_MS;
+    setCooldownUntil(until);
+    setNow(Date.now());
+    localStorage.setItem(COOLDOWN_KEY, String(until));
+  };
+
+  const formatRemaining = (ms: number) => {
+    const total = Math.ceil(ms / 1000);
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+  };
 
   const resetForm = () => {
     setAlias("");
@@ -338,6 +371,7 @@ function Index() {
       const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
       setActiveResult(result);
       setResults((r) => ({ ...r, [app.id]: result }));
+      startCooldown();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch status.";
       setError(message);
@@ -358,6 +392,7 @@ function Index() {
       try {
         const result = await checkFirearmStatus({ fsref: app.fsref, fserial: app.fserial });
         setResults((r) => ({ ...r, [app.id]: result }));
+        startCooldown();
       } catch (err) {
         setResults((r) => ({
           ...r,
@@ -515,9 +550,19 @@ function Index() {
                     </span>
                   )}
                   {savedApps.length > 0 && (
-                    <Button size="sm" variant="outline" disabled={loading || !!bulk} onClick={checkAll}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={loading || !!bulk || cooldownActive}
+                      onClick={checkAll}
+                      title={
+                        cooldownActive
+                          ? "To avoid disrupting the SAPS website, wait before checking again."
+                          : "Check every saved application"
+                      }
+                    >
                       <RefreshCw className={`h-4 w-4 ${bulk ? "animate-spin" : ""}`} />
-                      Check all
+                      {cooldownActive ? `Wait ${formatRemaining(cooldownRemaining)}` : "Check all"}
                     </Button>
                   )}
                   {savedApps.length > 0 && (
@@ -544,6 +589,12 @@ function Index() {
                   <span className="text-xs text-muted-foreground">{savedApps.length} saved</span>
                 </div>
               </div>
+              {cooldownActive && !bulk && (
+                <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
+                  To avoid disrupting the SAPS website, the next check is available in{" "}
+                  {formatRemaining(cooldownRemaining)}. Failed checks are not affected.
+                </p>
+              )}
               {importMsg && (
                 <p className="text-xs text-muted-foreground" role="status">{importMsg}</p>
               )}
@@ -577,11 +628,16 @@ function Index() {
                       <Button
                         className="flex-1 sm:flex-none"
                         size="sm"
-                        disabled={loading || !!bulk}
+                        disabled={loading || !!bulk || cooldownActive}
+                        title={
+                          cooldownActive
+                            ? "To avoid disrupting the SAPS website, wait before checking again."
+                            : "Check this application's status on SAPS"
+                        }
                         onClick={() => checkStatus(app)}
                       >
                         <RefreshCw className={`h-4 w-4 ${checkingId === app.id ? "animate-spin" : ""}`} />
-                        Check status
+                        {cooldownActive && !bulk ? `Wait ${formatRemaining(cooldownRemaining)}` : "Check status"}
                       </Button>
                       <Button
                         size="sm"
