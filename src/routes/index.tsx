@@ -199,12 +199,40 @@ function Index() {
         /* ignore corrupt storage */
       }
     }
+    const rawCooldown = Number(localStorage.getItem(COOLDOWN_KEY) ?? "0");
+    if (rawCooldown > Date.now()) {
+      setCooldownUntil(rawCooldown);
+      setNow(Date.now());
+    }
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(savedApps));
   }, [savedApps, hydrated]);
+
+  const cooldownRemaining = Math.max(0, cooldownUntil - now);
+  const cooldownActive = cooldownRemaining > 0;
+
+  useEffect(() => {
+    if (!cooldownActive) return;
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, [cooldownActive]);
+
+  // Only a successful check that returned usable data from SAPS starts the
+  // cooldown — failed or unusable checks stay free so users can retry at once.
+  const startCooldown = () => {
+    const until = Date.now() + COOLDOWN_MS;
+    setCooldownUntil(until);
+    setNow(Date.now());
+    localStorage.setItem(COOLDOWN_KEY, String(until));
+  };
+
+  const formatRemaining = (ms: number) => {
+    const total = Math.ceil(ms / 1000);
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+  };
 
   const resetForm = () => {
     setAlias("");
