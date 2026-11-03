@@ -397,12 +397,16 @@ function Index() {
       setCheckingId(null);
     }
   };
-    setResults((r) => { const next = { ...r }; for (const a of eligible) delete next[a.id]; return next; });
+
   const checkAll = async () => {
     // Skip applications that are still on their own cooldown.
     const eligible = savedApps.filter((app) => remainingFor(app.id) <= 0);
     if (eligible.length === 0 || bulk) return;
-    setResults({});
+    setResults((r) => {
+      const next = { ...r };
+      for (const a of eligible) delete next[a.id];
+      return next;
+    });
     setBulk({ done: 0, total: eligible.length });
     let done = 0;
     for (const app of eligible) {
