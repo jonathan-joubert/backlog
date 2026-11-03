@@ -221,6 +221,11 @@ function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [cooldowns, now, savedApps],
   );
+  const readyCount = savedApps.filter((app) => remainingFor(app.id) <= 0).length;
+  const soonestRemaining = savedApps.reduce((min, app) => {
+    const r = remainingFor(app.id);
+    return r > 0 && (min === 0 || r < min) ? r : min;
+  }, 0);
 
   useEffect(() => {
     if (!cooldownActive) return;
