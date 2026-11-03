@@ -566,16 +566,20 @@ function Index() {
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={loading || !!bulk || cooldownActive}
+                      disabled={loading || !!bulk || readyCount === 0}
                       onClick={checkAll}
                       title={
-                        cooldownActive
+                        readyCount === 0
                           ? "To avoid disrupting the SAPS website, wait before checking again."
-                          : "Check every saved application"
+                          : "Check every application that isn't cooling down"
                       }
                     >
                       <RefreshCw className={`h-4 w-4 ${bulk ? "animate-spin" : ""}`} />
-                      {cooldownActive ? `Wait ${formatRemaining(cooldownRemaining)}` : "Check all"}
+                      {readyCount === 0
+                        ? `Wait ${formatRemaining(soonestRemaining)}`
+                        : readyCount < savedApps.length
+                          ? `Check ${readyCount} ready`
+                          : "Check all"}
                     </Button>
                   )}
                   {savedApps.length > 0 && (
@@ -603,9 +607,9 @@ function Index() {
                 </div>
               </div>
               {cooldownActive && !bulk && (
-                <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
-                  To avoid disrupting the SAPS website, the next check is available in{" "}
-                  {formatRemaining(cooldownRemaining)}. Failed checks are not affected.
+                <p className="text-xs text-muted-foreground" role="status">
+                  To avoid disrupting the SAPS website, each application waits 3 minutes after a
+                  successful check. Failed checks are not affected.
                 </p>
               )}
               {importMsg && (
