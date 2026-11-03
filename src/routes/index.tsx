@@ -397,7 +397,7 @@ function Index() {
       setCheckingId(null);
     }
   };
-
+    setResults((r) => { const next = { ...r }; for (const a of eligible) delete next[a.id]; return next; });
   const checkAll = async () => {
     // Skip applications that are still on their own cooldown.
     const eligible = savedApps.filter((app) => remainingFor(app.id) <= 0);
