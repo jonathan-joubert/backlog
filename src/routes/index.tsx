@@ -645,16 +645,18 @@ function Index() {
                       <Button
                         className="flex-1 sm:flex-none"
                         size="sm"
-                        disabled={loading || !!bulk || cooldownActive}
+                        disabled={loading || !!bulk || remainingFor(app.id) > 0}
                         title={
-                          cooldownActive
-                            ? "To avoid disrupting the SAPS website, wait before checking again."
+                          remainingFor(app.id) > 0
+                            ? "To avoid disrupting the SAPS website, wait before checking this application again."
                             : "Check this application's status on SAPS"
                         }
                         onClick={() => checkStatus(app)}
                       >
                         <RefreshCw className={`h-4 w-4 ${checkingId === app.id ? "animate-spin" : ""}`} />
-                        {cooldownActive && !bulk ? `Wait ${formatRemaining(cooldownRemaining)}` : "Check status"}
+                        {remainingFor(app.id) > 0
+                          ? `Wait ${formatRemaining(remainingFor(app.id))}`
+                          : "Check status"}
                       </Button>
                       <Button
                         size="sm"
