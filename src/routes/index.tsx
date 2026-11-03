@@ -221,6 +221,11 @@ function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [cooldowns, now, savedApps],
   );
+  const readyCount = savedApps.filter((app) => remainingFor(app.id) <= 0).length;
+  const soonestRemaining = savedApps.reduce((min, app) => {
+    const r = remainingFor(app.id);
+    return r > 0 && (min === 0 || r < min) ? r : min;
+  }, 0);
 
   useEffect(() => {
     if (!cooldownActive) return;
@@ -397,7 +402,11 @@ function Index() {
     // Skip applications that are still on their own cooldown.
     const eligible = savedApps.filter((app) => remainingFor(app.id) <= 0);
     if (eligible.length === 0 || bulk) return;
-    setResults({});
+    setResults((r) => {
+      const next = { ...r };
+      for (const a of eligible) delete next[a.id];
+      return next;
+    });
     setBulk({ done: 0, total: eligible.length });
     let done = 0;
     for (const app of eligible) {
@@ -566,16 +575,20 @@ function Index() {
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={loading || !!bulk || cooldownActive}
+                      disabled={loading || !!bulk || readyCount === 0}
                       onClick={checkAll}
                       title={
-                        cooldownActive
+                        readyCount === 0
                           ? "To avoid disrupting the SAPS website, wait before checking again."
-                          : "Check every saved application"
+                          : "Check every application that isn't cooling down"
                       }
                     >
                       <RefreshCw className={`h-4 w-4 ${bulk ? "animate-spin" : ""}`} />
-                      {cooldownActive ? `Wait ${formatRemaining(cooldownRemaining)}` : "Check all"}
+                      {readyCount === 0
+                        ? `Wait ${formatRemaining(soonestRemaining)}`
+                        : readyCount < savedApps.length
+                          ? `Check ${readyCount} ready`
+                          : "Check all"}
                     </Button>
                   )}
                   {savedApps.length > 0 && (
@@ -603,9 +616,9 @@ function Index() {
                 </div>
               </div>
               {cooldownActive && !bulk && (
-                <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
-                  To avoid disrupting the SAPS website, the next check is available in{" "}
-                  {formatRemaining(cooldownRemaining)}. Failed checks are not affected.
+                <p className="text-xs text-muted-foreground" role="status">
+                  To avoid disrupting the SAPS website, each application waits 3 minutes after a
+                  successful check. Failed checks are not affected.
                 </p>
               )}
               {importMsg && (
@@ -641,16 +654,18 @@ function Index() {
                       <Button
                         className="flex-1 sm:flex-none"
                         size="sm"
-                        disabled={loading || !!bulk || cooldownActive}
+                        disabled={loading || !!bulk || remainingFor(app.id) > 0}
                         title={
-                          cooldownActive
-                            ? "To avoid disrupting the SAPS website, wait before checking again."
+                          remainingFor(app.id) > 0
+                            ? "To avoid disrupting the SAPS website, wait before checking this application again."
                             : "Check this application's status on SAPS"
                         }
                         onClick={() => checkStatus(app)}
                       >
                         <RefreshCw className={`h-4 w-4 ${checkingId === app.id ? "animate-spin" : ""}`} />
-                        {cooldownActive && !bulk ? `Wait ${formatRemaining(cooldownRemaining)}` : "Check status"}
+                        {remainingFor(app.id) > 0
+                          ? `Wait ${formatRemaining(remainingFor(app.id))}`
+                          : "Check status"}
                       </Button>
                       <Button
                         size="sm"
